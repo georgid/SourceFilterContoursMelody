@@ -190,3 +190,25 @@ def MEFromSF(times, SF, options):
             except:
                 print "Error computing contour data"
     return times, pitch
+
+
+if __name__ == '__main__':
+    if len(sys.argv) != 4:
+        sys.exit('there should be 4 args')
+    import parsing
+    
+    (args,options) = parsing.parseOptions(sys.argv)
+    
+    options.pitchContinuity = 27.56
+    options.peakDistributionThreshold = 1.3
+    options.peakFrameThreshold = 0.7
+    options.timeContinuity = 100
+    options.minDuration = 100
+    options.voicingTolerance = 1
+    options.useVibrato = False
+    
+    options.Fs = 44100
+    options.extractionMethod = 'PCC'
+    options.pitch_output_file    = 'recording'
+        
+    MEFromFileNumInFolder(sys.argv[1], sys.argv[2], int(sys.argv[3]), options)
