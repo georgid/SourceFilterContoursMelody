@@ -1,3 +1,6 @@
+from src.timbreFeatures import compute_timbre_features,\
+    createDataFrameWithExtraFeatures
+from src.HarmonicSummationSF import calculateSpectrum, calculateSF
 __author__ = 'juanjobosch'
 
 import sys, os
@@ -5,7 +8,8 @@ from essentia import *
 from essentia.standard import *
 import contourExtraction as ce
 
-
+useTimbre = True
+    
 def MEFromFileNumInFolder(salsfolder, outfolder, fileNum, options):
     """ Auxiliar function, to extract melody from a folder with precomputed and saved saliences (*.Msal)
         Parameters
@@ -26,7 +30,8 @@ def MEFromFileNumInFolder(salsfolder, outfolder, fileNum, options):
     fn = glob.glob(salsfolder + '*.Msal*')[fileNum - 1]
     bn = basename(fn)
     outputfile = join(outfolder, bn[0:bn.find('.Msal')] + '.pitch')
-    MEFromSFFile(fn, outputfile, options)
+    wavFile = join(salsfolder, bn[0:bn.find('.Msal')] + '.wav')
+    MEFromSFFile(fn, outputfile, wavFile, options)
 
 
 def loadSFFile(fn):
@@ -60,7 +65,7 @@ def loadSFFile(fn):
     return times, SF
 
 
-def MEFromSFFile(fn, outputfile, options):
+def MEFromSFFile(fn, outputfile, wavFile, options):
     """ Computes Melody extractino from a Salience function File
         Parameters
     ----------
@@ -74,11 +79,11 @@ def MEFromSFFile(fn, outputfile, options):
     from numpy import column_stack, savetxt
 
     times, SF = loadSFFile(fn)
-    times, pitch = MEFromSF(times, SF, options)
+    times, pitch = MEFromSF(times, SF, wavFile, options)
     savetxt(outputfile, column_stack((times.T, pitch.T)), fmt='%-7.5f', delimiter=",")
 
 
-def MEFromSF(times, SF, options):
+def MEFromSF(times, SF, fftgram, options):
     """ Computes Melody extractino from a Salience function
         Parameters
     ----------
@@ -98,6 +103,7 @@ def MEFromSF(times, SF, options):
     Fs = options.Fs
     hopsize = options.hopsizeInSamples
     stepNotes = options.stepNotes
+    
     Nbins = SF.shape[0]
 
     try:
@@ -157,7 +163,21 @@ def MEFromSF(times, SF, options):
     NContours = len(contours_bins_SAL)
     print 'NContours %d' % NContours
     pitch = np.zeros(len(times))
+    
+#     print contours_bins_SAL[0]
+#     import json
+#     with open('../test/contour_bins.txt', 'w') as outfile:
+#         contour_bins_test = contours_bins_SAL[0]
+#         contour_bins_test.insert(0, contours_start_times_SAL[0])
+#         json.dump(contour_bins_test, outfile)
+     
+    if useTimbre:
+        try:
+             contourTimbre = compute_timbre_features(contours_bins_SAL, contours_start_times_SAL, fftgram, times, options)
+        except:
+            print "Error computing timbre features"
 
+    
     options.saveContours = True
 
     if (NContours > 0):
@@ -176,10 +196,11 @@ def MEFromSF(times, SF, options):
             L = min(len(pitch), len(times))
             pitch = pitch[0:L]
             times = times[0:L]
+            
         # If contour need to be saved for pitch contour classification, we compute the the contour data
         if options.saveContours:
-            extraFeatures = None
             try:
+                extraFeatures = createDataFrameWithExtraFeatures(contours_start_times_SAL,contours_bins_SAL, contourTimbre, contourTonalInfo= None)
                 contour_data = ce.compute_contour_data(contours_bins_SAL, contours_saliences_SAL,
                                                        contours_start_times_SAL, stepNotes, options.minF0,
                                                        options.hopsize, extra_features=extraFeatures)
@@ -192,9 +213,14 @@ def MEFromSF(times, SF, options):
     return times, pitch
 
 
+
+
+
+
+
 if __name__ == '__main__':
-    if len(sys.argv) != 4:
-        sys.exit('there should be 4 args')
+    
+
     import parsing
     
     (args,options) = parsing.parseOptions(sys.argv)
@@ -210,5 +236,14 @@ if __name__ == '__main__':
     options.Fs = 44100
     options.extractionMethod = 'PCC'
     options.pitch_output_file    = 'recording'
-        
-    MEFromFileNumInFolder(sys.argv[1], sys.argv[2], int(sys.argv[3]), options)
+    
+    wavfile =  '../test/10161_chorus.wav'
+    spectogram, fftgram = calculateSpectrum(wavfile, options.hopsizeInSamples)
+    timesHSSF, HSSF = calculateSF(spectogram,  options.hopsizeInSamples)
+    HSSF = HSSF.T
+    print("Extracting melody from salience function")
+    times, pitch = MEFromSF(timesHSSF, HSSF, fftgram, options)
+    
+#     MEFromFileNumInFolder('../test/', 'output', 1 , options)
+# #     MEFromFileNumInFolder(sys.argv[1], sys.argv[2], int(sys.argv[3]), options)
+    

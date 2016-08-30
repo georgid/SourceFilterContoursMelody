@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from src.HarmonicSummationSF import calculateSpectrum
 __author__ = "Juan Jose Bosch"
 __email__ = "juan.bosch@upf.edu"
 
@@ -53,7 +54,8 @@ def process(args):
     if combmode != 4 and combmode != 5:
         # Computing Harmonic Summation salience function
         hopSizeinSamplesHSSF = int(min(options.hopsizeInSamples, 0.01 * options.Fs))
-        timesHSSF, HSSF = calculateSF(wavfile, hopSizeinSamplesHSSF)
+        spectogram, fftgram = calculateSpectrum(wavfile, hopSizeinSamplesHSSF)
+        timesHSSF, HSSF = calculateSF(spectogram,  hopSizeinSamplesHSSF)
     else:
         print "Harmonic Summation Salience function not used"
 
