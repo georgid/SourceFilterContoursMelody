@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def cross_val_sweep(x_train, y_train, max_search=100,
+def cross_val_sweep(x_train, y_train, max_search=60,
                     step=5, plot=True):
     """ Choose best parameter by performing cross fold validation
 

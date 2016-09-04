@@ -3,6 +3,8 @@
 import pandas as pd
 import numpy as np
 import mir_eval
+from src.Parameters import Parameters
+
 try:
     import matplotlib.pyplot as plt
     import seaborn as sns
@@ -173,13 +175,21 @@ def load_annotation(fpath):
     separator = '\t'
 
     # For MedleyDB
-    #separator = ','
+    separator = ','
 
     annot_data = pd.read_table(fpath, parse_dates=True,
                          index_col=False,header=None,sep=separator)
-
-    annot_data.columns = ['time', 'f0']
-
+    
+    #### for iKala edited by georgi
+    if Parameters.datasetIKala:
+        framesPerSec = 31.25
+        timestamps = np.arange(0.5,len(annot_data),1) / framesPerSec
+        annot_data.insert(0, 'time', timestamps)
+        annot_data.columns = ['time', 'f0']
+        # convert to hz
+#         hz_f0 =  mir_eval.util.midi_to_hz(annot_data['f0'])
+        hz_f0 = 440.0 * (2.0 ** ((annot_data['f0'] - 69.0)/12.0))        
+        annot_data['f0'] = hz_f0
     # Add column with annotation values in cents
     annot_data['cents'] = 1200.0*np.log2(annot_data['f0']/55.0)
 
@@ -216,6 +226,38 @@ def plot_contours(contour_data, annot_data, contour_data2=None):
 
     plt.plot(annot_data['time'], annot_data['f0'], '.k')
     plt.show()
+
+def plot_contours_interactive(contour_data, annot_data, contour_data2=None):
+    """ Plot contours against annotation.
+
+    Parameters
+    ----------
+    contour_data : DataFrame
+        Pandas data frame with all contour data.
+    annot_data : DataFrame
+        Pandas data frame with all annotation data.
+    """
+    if contour_data2 is not None:
+        c_times2, c_freqs2, _ = contours_from_contour_data(contour_data2)
+        for (times, freqs) in zip(c_times2.iterrows(), c_freqs2.iterrows()):
+            times = times[1].values
+            freqs = freqs[1].values
+            times = times[~np.isnan(times)]
+            freqs = freqs[~np.isnan(freqs)]
+            plt.plot(times, freqs, '.c')
+
+    c_times, c_freqs, _ = contours_from_contour_data(contour_data)
+    plt.figure()
+    
+    for i, (times, freqs) in enumerate(zip(c_times.iterrows(), c_freqs.iterrows()) ):
+        times = times[1].values
+        freqs = freqs[1].values
+        times = times[~np.isnan(times)]
+        freqs = freqs[~np.isnan(freqs)]
+        print "contour {} at time {}".format(i, times[0])
+        plt.plot(annot_data['time'], annot_data['f0'], '.k')
+        plt.plot(times, freqs, '.r')
+        plt.show()
 
 
 def compute_overlap(contour_data, annot_data):
@@ -257,7 +299,6 @@ def compute_overlap(contour_data, annot_data):
                                        gt_segment['f0'].values, times, freqs)
 
         contour_data.ix[row_idx, 'overlap'] = res['Overall Accuracy']
-
     return contour_data
 
 
@@ -314,7 +355,7 @@ def contour_glass_ceiling(contour_fpath, annot_fpath):
     vibrato_coverage = 13
     first_time = 14
 
-    hopsizeInSamples = 256.0
+    hopsizeInSamples = 128.0
 
     def time_to_index(t):
         return int(np.round(t * 44100 / hopsizeInSamples))

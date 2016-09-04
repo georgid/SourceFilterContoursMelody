@@ -30,9 +30,9 @@ def run_glassceiling_experiment(meltype):
         annot_path = os.path.join(os.environ['MEDLEYDB_PATH'], 'Annotations',
                                   'Melody_Annotations', mel_dir)
 
-        contour_fname = "%s_%s" % (track, contour_suffix)
+        contour_fname = "%s_%s" % (test_track, contour_suffix)
         contour_fpath = os.path.join(contours_path, contour_fname)
-        annot_fname = "%s_%s" % (track, annot_suffix)
+        annot_fname = "%s_%s" % (test_track, annot_suffix)
         annot_fpath = os.path.join(annot_path, annot_fname)
 
 
@@ -45,9 +45,9 @@ def run_glassceiling_experiment(meltype):
         annot_path = os.path.join(os.environ['MEDLEYDB_PATH'], 'Annotations',
                                   'Melody_Annotations', mel_dir)
 
-        contour_fname = "%s_%s" % (track, contour_suffix)
+        contour_fname = "%s_%s" % (test_track, contour_suffix)
         contour_fpath = os.path.join(contours_path, contour_fname)
-        annot_fname = "%s_%s" % (track, annot_suffix)
+        annot_fname = "%s_%s" % (test_track, annot_suffix)
         annot_fpath = os.path.join(annot_path, annot_fname)
 
 
@@ -58,9 +58,9 @@ def run_glassceiling_experiment(meltype):
         annot_suffix = "mel"
 
         annot_path = os.path.join('/Users/jjb/Google Drive/data/segments/excerpts/GT')
-        contour_fname = "%s.%s" % (track, contour_suffix)
+        contour_fname = "%s.%s" % (test_track, contour_suffix)
         contour_fpath = os.path.join(contours_path, contour_fname)
-        annot_fname = "%s.%s" % (track, annot_suffix)
+        annot_fname = "%s.%s" % (test_track, annot_suffix)
         annot_fpath = os.path.join(annot_path, annot_fname)
 
         # For ORCHSET with MELODIA (BIT)--------------------------
@@ -71,9 +71,9 @@ def run_glassceiling_experiment(meltype):
             "_vamp_melodia-contours_melodia-contours_contoursall.csv"
         contours_path = "/Users/jjb/Google Drive/PhD/conferences/ISMIR2016/SIMM-PC/Orchset/BIT"
         annot_suffix = "mel"
-        contour_fname = "%s%s" % (track, contour_suffix)
+        contour_fname = "%s%s" % (test_track, contour_suffix)
         contour_fpath = os.path.join(contours_path, contour_fname)
-        annot_fname = "%s.%s" % (track, annot_suffix)
+        annot_fname = "%s.%s" % (test_track, annot_suffix)
         annot_fpath = os.path.join(annot_path, annot_fname)
 
         # Fot ORCHSET with SIMM --------------------------
@@ -85,9 +85,9 @@ def run_glassceiling_experiment(meltype):
         annot_suffix = "mel"
 
         annot_path = os.path.join('/Users/jjb/Google Drive/data/segments/excerpts/GT')
-        contour_fname = "%s.%s" % (track, contour_suffix)
+        contour_fname = "%s.%s" % (test_track, contour_suffix)
         contour_fpath = os.path.join(contours_path, contour_fname)
-        annot_fname = "%s.%s" % (track, annot_suffix)
+        annot_fname = "%s.%s" % (test_track, annot_suffix)
         annot_fpath = os.path.join(annot_path, annot_fname)
 
         # ----------------------------
@@ -108,12 +108,12 @@ def run_glassceiling_experiment(meltype):
 
     overlap_results = {}
 
-    for track in track_list:
-        print track
-        cfpath, afpath = get_fpaths(track, meltype=meltype)
+    for test_track in track_list:
+        print test_track
+        cfpath, afpath = get_fpaths(test_track, meltype=meltype)
         print cfpath
         print afpath
-        overlap_results[track] = \
+        overlap_results[test_track] = \
             cc.contour_glass_ceiling(cfpath, afpath)
 
     return overlap_results

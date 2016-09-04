@@ -1,4 +1,3 @@
-from django.contrib.gis.shortcuts import numpy
 __author__ = 'jjb'
 
 from essentia.standard import *

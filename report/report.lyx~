@@ -71,7 +71,7 @@
 \begin_body
 
 \begin_layout Section
-Approach
+Introduction
 \end_layout
 
 \begin_layout Standard
@@ -148,6 +148,20 @@ Lehner - MFCCs
 
 \begin_layout Subsection
 dynamic features
+\end_layout
+
+\begin_layout Section
+Approach
+\end_layout
+
+\begin_layout Standard
+At a given frame if there is at least one melodic contour, it is considered
+ as voiced.
+ 
+\end_layout
+
+\begin_layout Standard
+no best threshold, no Viterbi decoding
 \end_layout
 
 \begin_layout Section

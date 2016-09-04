@@ -18,7 +18,7 @@ def process(args):
     mu = 1
     G = 0
     doConvolution = True
-    wavfile = args[0]
+    fileName = args[0]
     combmode = 13
 
     # Compute HF0 (SIMM with source-filter model)
@@ -54,7 +54,7 @@ def process(args):
     if combmode != 4 and combmode != 5:
         # Computing Harmonic Summation salience function
         hopSizeinSamplesHSSF = int(min(options.hopsizeInSamples, 0.01 * options.Fs))
-        spectogram, fftgram = calculateSpectrum(wavfile, hopSizeinSamplesHSSF)
+        spectogram, fftgram = calculateSpectrum(fileName, hopSizeinSamplesHSSF)
         timesHSSF, HSSF = calculateSF(spectogram,  hopSizeinSamplesHSSF)
     else:
         print "Harmonic Summation Salience function not used"
@@ -66,7 +66,7 @@ def process(args):
     combSal = combSal / max(combSal)
 
     print("Extracting melody from salience function")
-    times, pitch = melodyExtractionFromSalienceFunction.MEFromSF(times, combSal, options)
+    times, pitch, dummy, dummy = melodyExtractionFromSalienceFunction.MEFromSF(times, combSal, options)
 
     # Save output file
     savetxt(options.pitch_output_file, column_stack((times.T, pitch.T)), fmt='%-7.5f', delimiter="\t")

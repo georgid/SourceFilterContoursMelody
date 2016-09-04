@@ -74,7 +74,7 @@ def parseOptions(argsin,wavfilerequired = False):
     #                   default=0.0058,
     #                   help="size of the hop between analysis windows, in s.")
     parser.add_option("--hopsize", dest="hopsize", type="float",
-                      default=0.01,
+                      default=0.0029025,
                       help="size of the hop between analysis windows, in s.")
     parser.add_option("--nb-accElements", dest="R", type="float",
                       default=40.0,

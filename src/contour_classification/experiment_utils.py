@@ -9,6 +9,9 @@ import os
 import sys
 import matplotlib.pyplot as plt
 import seaborn as sns
+from src.contour_classification.contour_utils import plot_contours
+from src.melodyExtractionFromSalienceFunction import CONTOUR_EXTENSION
+from src.Parameters import Parameters
 sns.set()
 
 
@@ -33,7 +36,17 @@ def create_splits(test_size=0.15):
     for trackid, artist in sorted(index.items()):
         mdb_files.append(trackid)
         keys.append(artist)
-
+        
+    if Parameters.datasetIKala:
+        track_list = Parameters.tracks
+        mdb_files = [] 
+        for trackid in track_list:
+                mdb_files.append(trackid)
+        keys = np.zeros(len(track_list), dtype=np.str_)
+        keys= list()
+        for i in range(len(track_list)):
+            keys.append(str(i))
+    
     keys = np.asarray(keys)
     mdb_files = np.asarray(mdb_files)
     splitter = ShuffleLabelsOut(keys, random_state=1, test_size=test_size)
@@ -41,12 +54,12 @@ def create_splits(test_size=0.15):
     return mdb_files, splitter
 
 
-def get_data_files(track, meltype=1):
-    """ Load all necessary data for a given track and melody type.
+def get_data_files(test_track, meltype=1):
+    """ Load all necessary data for a given test_track and melody type.
 
     Parameters
     ----------
-    track : str
+    test_track : str
         Track identifier.
     meltype : int
         Melody annotation type. One of [1, 2, 3]
@@ -58,77 +71,98 @@ def get_data_files(track, meltype=1):
     adat : DataFrame
         Pandas DataFrame of annotation data.
     """
-    contour_suffix = \
-        "MIX_vamp_melodia-contours_melodia-contours_contoursall.csv"
-    contours_path = "melodia_contours"
+    
+    
+        
+    # for iKala. edited by georgid ---------------------------------------
+    if Parameters.datasetIKala:
+        annot_path = os.path.join(Parameters.iKala_annotation_URI)
+    
+        contour_suffix =  CONTOUR_EXTENSION
+        contours_path = Parameters.iKala_annotation_URI
+        annot_suffix = "pv"
+        contour_fname = "%s%s" % (test_track, contour_suffix)
+        contour_fpath = os.path.join(contours_path, contour_fname)
+        annot_fname = "%s.%s" % (test_track, annot_suffix)
+        annot_fpath = os.path.join(annot_path, annot_fname)
+    
+    else:
+    
+        contour_suffix = \
+            "MIX_vamp_melodia-contours_melodia-contours_contoursall.csv"
+        contours_path = "melodia_contours"
+    
+    
+    
+        
+        # For ORCHSET with MELODIA --------------------------
+     
+        annot_path = os.path.join('/Users/jjb/Google Drive/data/segments/excerpts/GT')
+     
+        contour_suffix = \
+            "_vamp_melodia-contours_melodia-contours_contoursall.csv"
+        contours_path = "/Users/jjb/Google Drive/PhD/conferences/ISMIR2016/SIMM-PC/Orchset/contours_melodia"
+        annot_suffix = "mel"
+        contour_fname = "%s%s" % (test_track, contour_suffix)
+        contour_fpath = os.path.join(contours_path, contour_fname)
+        annot_fname = "%s.%s" % (test_track, annot_suffix)
+        annot_fpath = os.path.join(annot_path, annot_fname)
+     
+     
+        # Fot ORCHSET with SIMM --------------------------
+     
+        contour_suffix = "pitch.ctr"
+        contours_path = "/Users/jjb/Google Drive/PhD/conferences/ISMIR2016/SIMM-PC/Orchset/C4-Contours/Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-0.9_pFTh-0.9_tC-50_mD-100"
+     
+        contours_path = "/Users/jjb/Google Drive/PhD/Tests/Orchset/ScContours/"
+     
+        annot_suffix = "mel"
+     
+        annot_path = os.path.join('/Users/jjb/Google Drive/data/segments/excerpts/GT')
+        contour_fname = "%s.%s" % (test_track, contour_suffix)
+        contour_fpath = os.path.join(contours_path, contour_fname)
+        annot_fname = "%s.%s" % (test_track, annot_suffix)
+        annot_fpath = os.path.join(annot_path, annot_fname)
+     
+        # For MEDLEY with SIMM -------------------------
+        contour_suffix = "MIX.pitch.ctr"
+        contours_path = "/Users/jjb/Google Drive/PhD/conferences/ISMIR2016/SIMM-PC/MedleyDB/C4-Contours/Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-0.9_pFTh-0.9_tC-50_mD-100"
+     
+        annot_suffix = "MELODY%s.csv" % str(meltype)
+        mel_dir = "MELODY%s" % str(meltype)
+        annot_path = os.path.join(os.environ['MEDLEYDB_PATH'], 'Annotations',
+                                  'Melody_Annotations', mel_dir)
+     
+        contour_fname = "%s_%s" % (test_track, contour_suffix)
+        contour_fpath = os.path.join(contours_path, contour_fname)
+        annot_fname = "%s_%s" % (test_track, annot_suffix)
+        annot_fpath = os.path.join(annot_path, annot_fname)
+     
+        # Fot ORCHSET with SIMM --------------------------
+     
+        contour_suffix = "pitch.ctr"
+        contours_path = "/Users/jjb/Google Drive/PhD/conferences/ISMIR2016/SIMM-PC/Orchset/C4-Contours/Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-0.9_pFTh-0.9_tC-50_mD-100"
+     
+        #contours_path = "/Users/jjb/Google Drive/PhD/Tests/Orchset/ScContours/"
+     
+        annot_suffix = "mel"
+     
+        annot_path = os.path.join('/Users/jjb/Google Drive/data/segments/excerpts/GT')
+        contour_fname = "%s.%s" % (test_track, contour_suffix)
+        contour_fpath = os.path.join(contours_path, contour_fname)
+        annot_fname = "%s.%s" % (test_track, annot_suffix)
+        annot_fpath = os.path.join(annot_path, annot_fname)
+    
+        #################################################
+    
 
-    # For ORCHSET with MELODIA --------------------------
-
-    annot_path = os.path.join('/Users/jjb/Google Drive/data/segments/excerpts/GT')
-
-    contour_suffix = \
-        "_vamp_melodia-contours_melodia-contours_contoursall.csv"
-    contours_path = "/Users/jjb/Google Drive/PhD/conferences/ISMIR2016/SIMM-PC/Orchset/contours_melodia"
-    annot_suffix = "mel"
-    contour_fname = "%s%s" % (track, contour_suffix)
-    contour_fpath = os.path.join(contours_path, contour_fname)
-    annot_fname = "%s.%s" % (track, annot_suffix)
-    annot_fpath = os.path.join(annot_path, annot_fname)
-
-
-    # Fot ORCHSET with SIMM --------------------------
-
-    contour_suffix = "pitch.ctr"
-    contours_path = "/Users/jjb/Google Drive/PhD/conferences/ISMIR2016/SIMM-PC/Orchset/C4-Contours/Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-0.9_pFTh-0.9_tC-50_mD-100"
-
-    contours_path = "/Users/jjb/Google Drive/PhD/Tests/Orchset/ScContours/"
-
-    annot_suffix = "mel"
-
-    annot_path = os.path.join('/Users/jjb/Google Drive/data/segments/excerpts/GT')
-    contour_fname = "%s.%s" % (track, contour_suffix)
-    contour_fpath = os.path.join(contours_path, contour_fname)
-    annot_fname = "%s.%s" % (track, annot_suffix)
-    annot_fpath = os.path.join(annot_path, annot_fname)
-
-    # For MEDLEY with SIMM -------------------------
-    contour_suffix = "MIX.pitch.ctr"
-    contours_path = "/Users/jjb/Google Drive/PhD/conferences/ISMIR2016/SIMM-PC/MedleyDB/C4-Contours/Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-0.9_pFTh-0.9_tC-50_mD-100"
-
-    annot_suffix = "MELODY%s.csv" % str(meltype)
-    mel_dir = "MELODY%s" % str(meltype)
-    annot_path = os.path.join(os.environ['MEDLEYDB_PATH'], 'Annotations',
-                              'Melody_Annotations', mel_dir)
-
-    contour_fname = "%s_%s" % (track, contour_suffix)
-    contour_fpath = os.path.join(contours_path, contour_fname)
-    annot_fname = "%s_%s" % (track, annot_suffix)
-    annot_fpath = os.path.join(annot_path, annot_fname)
-
-    # Fot ORCHSET with SIMM --------------------------
-
-    contour_suffix = "pitch.ctr"
-    contours_path = "/Users/jjb/Google Drive/PhD/conferences/ISMIR2016/SIMM-PC/Orchset/C4-Contours/Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-0.9_pFTh-0.9_tC-50_mD-100"
-
-    #contours_path = "/Users/jjb/Google Drive/PhD/Tests/Orchset/ScContours/"
-
-    annot_suffix = "mel"
-
-    annot_path = os.path.join('/Users/jjb/Google Drive/data/segments/excerpts/GT')
-    contour_fname = "%s.%s" % (track, contour_suffix)
-    contour_fpath = os.path.join(contours_path, contour_fname)
-    annot_fname = "%s.%s" % (track, annot_suffix)
-    annot_fpath = os.path.join(annot_path, annot_fname)
-
-    #################################################
-
+    
     cdat = cc.load_contour_data(contour_fpath, normalize=True)
     adat = cc.load_annotation(annot_fpath)
-
     return cdat, adat
 
 
-def compute_all_overlaps(track_list, meltype):
+def  compute_all_overlaps(track_list, meltype):
     """ Compute each contour's overlap with annotation.
 
     Parameters
@@ -155,6 +189,7 @@ def compute_all_overlaps(track_list, meltype):
 
     for track in track_list:
         cdat, adat = get_data_files(track, meltype=meltype)
+#         plot_contours(cdat, adat)
         dset_annot_dict[track] = adat.copy()
         dset_contour_dict[track] = cc.compute_overlap(cdat, adat)
         sys.stdout.write('.')
@@ -243,7 +278,7 @@ def contour_probs(clf, contour_data,idxStartFeatures=0,idxEndFeatures=11):
         DataFrame with contour information and predicted probabilities.
     """
     contour_data['mel prob'] = -1
-    features, _ = cc.pd_to_sklearn(contour_data,idxStartFeatures,idxEndFeatures)
+    features, _ = cc.pd_to_sklearn(contour_data, idxStartFeatures, idxEndFeatures)
     probs = clf.predict_proba(features)
     mel_probs = [p[1] for p in probs]
     contour_data['mel prob'] = mel_probs
@@ -281,12 +316,22 @@ def get_best_threshold(y_ref, y_pred_score, plot=False):
     precision, recall, thresholds = \
             metrics.precision_recall_curve(y_ref, y_pred_score, pos_label=1,
                                            sample_weight=sample_weight)
+    
+#     if precision.shape != thresholds.shape:
+#         thresholds = np.zeros((precision.shape,))
+#         thresholds[-1,] = thresholds[0,] # hack works only in condition we have observed 
     beta = 1.0
     btasq = beta**2.0
     fbeta_scores = (1.0 + btasq)*(precision*recall)/((btasq*precision)+recall)
 
     max_fscore = fbeta_scores[np.nanargmax(fbeta_scores)]
-    best_threshold = thresholds[np.nanargmax(fbeta_scores)]
+    # some index has more than zero: todo: 
+    idx_max_fscore = np.nanargmax(fbeta_scores)
+    if idx_max_fscore >= len(thresholds):
+        print 'max f-score at idx {}, but thresholds are {}'.format(idx_max_fscore, len(thresholds))
+        best_threshold =  thresholds[0] # hack
+    else:
+        best_threshold = thresholds[idx_max_fscore]
 
     if plot:
         plt.figure(1)

@@ -4,7 +4,7 @@ Created on Aug 31, 2016
 @author: georgid
 '''
 
-import contour_utils as cc
+import contour_classification.contour_utils as cc
 import numpy as np
 import pandas as pd
 

@@ -1,6 +1,8 @@
 from src.timbreFeatures import compute_timbre_features,\
     createDataFrameWithExtraFeatures
 from src.HarmonicSummationSF import calculateSpectrum, calculateSF
+import json
+from src.Parameters import Parameters
 __author__ = 'juanjobosch'
 
 import sys, os
@@ -8,7 +10,12 @@ from essentia import *
 from essentia.standard import *
 import contourExtraction as ce
 
-useTimbre = True
+CONTOUR_EXTENSION = ''
+if Parameters.useTimbre:
+    CONTOUR_EXTENSION = '.timbre'
+CONTOUR_EXTENSION += '.ctr'    
+
+
     
 def MEFromFileNumInFolder(salsfolder, outfolder, fileNum, options):
     """ Auxiliar function, to extract melody from a folder with precomputed and saved saliences (*.Msal)
@@ -170,8 +177,8 @@ def MEFromSF(times, SF, fftgram, options):
 #         contour_bins_test = contours_bins_SAL[0]
 #         contour_bins_test.insert(0, contours_start_times_SAL[0])
 #         json.dump(contour_bins_test, outfile)
-     
-    if useTimbre:
+    contourTimbre = None 
+    if Parameters.useTimbre:
         try:
              contourTimbre = compute_timbre_features(contours_bins_SAL, contours_start_times_SAL, fftgram, times, options)
         except:
@@ -199,51 +206,21 @@ def MEFromSF(times, SF, fftgram, options):
             
         # If contour need to be saved for pitch contour classification, we compute the the contour data
         if options.saveContours:
+            
             try:
-                extraFeatures = createDataFrameWithExtraFeatures(contours_start_times_SAL,contours_bins_SAL, contourTimbre, contourTonalInfo= None)
+                extraFeatures = createDataFrameWithExtraFeatures(contours_start_times_SAL, contours_bins_SAL, contourTimbre, contourTonalInfo= None)
                 contour_data = ce.compute_contour_data(contours_bins_SAL, contours_saliences_SAL,
                                                        contours_start_times_SAL, stepNotes, options.minF0,
                                                        options.hopsize, extra_features=extraFeatures)
-                picklefile = options.pitch_output_file + '.ctr'
+                picklefile = options.pitch_output_file + CONTOUR_EXTENSION
                 from pickle import dump
                 with open(picklefile, 'wb') as handle:
                     dump(contour_data, handle)
+                print 'stored contours as ' + picklefile 
             except:
                 print "Error computing contour data"
     return times, pitch
 
 
 
-
-
-
-
-if __name__ == '__main__':
-    
-
-    import parsing
-    
-    (args,options) = parsing.parseOptions(sys.argv)
-    
-    options.pitchContinuity = 27.56
-    options.peakDistributionThreshold = 1.3
-    options.peakFrameThreshold = 0.7
-    options.timeContinuity = 100
-    options.minDuration = 100
-    options.voicingTolerance = 1
-    options.useVibrato = False
-    
-    options.Fs = 44100
-    options.extractionMethod = 'PCC'
-    options.pitch_output_file    = 'recording'
-    
-    wavfile =  '../test/10161_chorus.wav'
-    spectogram, fftgram = calculateSpectrum(wavfile, options.hopsizeInSamples)
-    timesHSSF, HSSF = calculateSF(spectogram,  options.hopsizeInSamples)
-    HSSF = HSSF.T
-    print("Extracting melody from salience function")
-    times, pitch = MEFromSF(timesHSSF, HSSF, fftgram, options)
-    
-#     MEFromFileNumInFolder('../test/', 'output', 1 , options)
-# #     MEFromFileNumInFolder(sys.argv[1], sys.argv[2], int(sys.argv[3]), options)
     

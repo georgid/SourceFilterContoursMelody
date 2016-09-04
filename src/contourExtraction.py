@@ -1,6 +1,5 @@
 import contour_classification.contour_utils as cu
 
-
 def compute_contour_data(contours_bins, contours_saliences, contours_start_times, stepNotes, minF0, hopsize,
                          normalize=True, extra_features=None):
     from pandas import DataFrame, concat
@@ -79,22 +78,33 @@ def compute_contour_data(contours_bins, contours_saliences, contours_start_times
 
         # After setting the features, we now give each contour the frame by frame information, e.g for frame0 (fr0), frame 1 (fr1)...
         # time_fr0, pitch_fr0, salience_fr0, time_fr1, pitch_fr1, salience_fr1, time_fr2, pitch_fr2, salience_fr2, ...
-
+        
+        
         contour_data.iloc[i, 12:12 + L * 3:3] = contours_start_times[i] + hopsize * array(range(L))
         contour_data.iloc[i, 13:13 + L * 3:3] = pitches
         contour_data.iloc[i, 14:14 + L * 3:3] = array(contours_saliences[i])
 
+    
     # If extra features are used, they are set before the first_time
+#     if extra_features is not None:
+#         dfFeatures = concat([contour_data.ix[:, 0:12], extra_features], axis=1)
+#         contour_data = concat([dfFeatures, contour_data.ix[:, 12:]], axis=1)
+    
     if extra_features is not None:
-        dfFeatures = concat([contour_data.ix[:, 0:12], extra_features], axis=1)
-        contour_data = concat([dfFeatures, contour_data.ix[:, 12:]], axis=1)
+        sal_features_data = contour_data[headers[0:12]]
+#         frame-by-frame fetures
+        frame_by_frame_features_data =  contour_data[headers[12:]]
+        dfFeatures = concat([sal_features_data, extra_features], axis=1)
+        contour_data = concat([dfFeatures, frame_by_frame_features_data ], axis=1)    
+        
 
     # All classification labels are initialised (will be updated while performing contour classification)
     contour_data['overlap'] = -1
     contour_data['labels'] = -1
     contour_data['melodiness'] = ""
     contour_data['mel prob'] = -1
-
+    
+    
     # Normalising features
     if normalize:
         contour_data = cu.normalize_features(contour_data)

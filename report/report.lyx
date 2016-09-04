@@ -161,7 +161,52 @@ At a given frame if there is at least one melodic contour, it is considered
 \end_layout
 
 \begin_layout Standard
-no best threshold, no Viterbi decoding
+no Viterbi decoding
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Comment
+status open
+
+\begin_layout Plain Layout
+1.
+ Extract contours from all data and save: melodyExtractionFromSalienceFunction.ma
+in
+\end_layout
+
+\begin_layout Plain Layout
+2.
+ run_contour_training_melody_extraction.py
+\end_layout
+
+\begin_layout Plain Layout
+- 3.1 for all contours overlap with ground truth eu.compute_all_overlaps
+\end_layout
+
+\begin_layout Plain Layout
+- cross validate best depth of CRF cu.cross_val_sweep
+\end_layout
+
+\begin_layout Plain Layout
+- classify all contours and get scikitlearn metrics: cu.clf_predictions
+\end_layout
+
+\begin_layout Plain Layout
+- get threshold with best f-measure on validation dataset get_best_threshold(Y_v
+alid, P_valid) on validation
+\end_layout
+
+\begin_layout Plain Layout
+- classify test contours : contour_probs
+\end_layout
+
+\begin_layout Plain Layout
+- melody decoding: gm.melody_from_clf
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section

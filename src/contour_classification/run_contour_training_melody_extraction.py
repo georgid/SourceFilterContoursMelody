@@ -16,6 +16,12 @@ import os
 import json
 import matplotlib.pyplot as plt
 import seaborn as sns
+from src import Parameters.Parameters
+import sys
+from src.contour_selection_VD import contours_to_vocal
+
+
+
 sns.set()
 from scipy.stats import boxcox
 
@@ -28,7 +34,7 @@ from contour_utils  import getFeatureInfo
 plt.ion()
 
 
-mel_type=2
+mel_type=1
 
 reload(eu)
 
@@ -38,23 +44,28 @@ scores_nm = []
 # EDIT: For MedleyDB
 #with open('melody_trackids.json', 'r') as fhandle:
 #    track_list = json.load(fhandle)
-
 # For Orchset
 with open('melody_trackids_orch.json', 'r') as fhandle:
     track_list = json.load(fhandle)
 
+    #  for iKala
+if Parameters.datasetIKala:
+        with open('melody_trackids_iKala.json', 'r') as fhandle:
+            track_list = json.load(fhandle)
 
-track_list = track_list['tracks']
 
-# mdb_files, splitter = eu.create_splits(test_size=0.15)
+tracks  = track_list['tracks']
 
-dset_contour_dict, dset_annot_dict = \
-        eu.compute_all_overlaps(track_list, meltype=mel_type)
+contours_path = Parameters.iKala_annotation_URI
+
+dset_contour_dict, dset_annot_dict = load_labeled_contours(tracks, contours_path)
 
 mdb_files, splitter = eu.create_splits(test_size=0.25)
 
-for i in range(4):
-    for train, test in splitter:
+
+# repeat split into train and test 4 times
+for i in range(1):
+    for train, test in splitter: # each splitting is repeated 5 times
         random.shuffle(train)
         n_train = len(train) - (len(test)/2)
         train_tracks = mdb_files[train[:n_train]]
@@ -81,7 +92,7 @@ for i in range(4):
 
         anyContourDataFrame = dset_contour_dict[dset_contour_dict.keys()[0]]
 
-
+        #### CONVERT PANDAS DATA to DATA for scikit Learn 
         feats, idxStartFeatures, idxEndFeatures = getFeatureInfo(anyContourDataFrame)
 
         X_train, Y_train = cc.pd_to_sklearn(train_contour_dict,idxStartFeatures,idxEndFeatures)
@@ -90,33 +101,17 @@ for i in range(4):
         np.max(X_train,0)
 
 
-        # x,y = cc.pd_to_sklearn(train_contour_dict['AClassicEducation_NightOwl'])
-        # train_contour_dict['AClassicEducation_NightOwl']
-        # contour_data = train_contour_dict['AClassicEducation_NightOwl']
-        # x[68]
-        # train_contour_dict['AClassicEducation_NightOwl'].loc[68,:]
-        #
-        # X_train_boxcox, X_test_boxcox = mv.transform_features(X_train, X_test)
-        # rv_pos, rv_neg = mv.fit_gaussians(X_train_boxcox, Y_train)
-        #
-        # M_train, M_test = mv.compute_all_melodiness(X_train_boxcox, X_test_boxcox, rv_pos, rv_neg)
-        #
-        # reload(mv)
-        # reload(eu)
-        # melodiness_scores = mv.melodiness_metrics(M_train, M_test, Y_train, Y_test)
-        # best_thresh, max_fscore,vals = eu.get_best_threshold(Y_test, M_test)
-        # print "best threshold = %s" % best_thresh
-        # print "maximum achieved f score = %s" % max_fscore
-        # print melodiness_scores
-
+        
+        
+        #####################  cross-val of best depth of RFC
         reload(cu)
-        best_depth, max_cv_accuracy, plot_dat = cu.cross_val_sweep(X_train, Y_train,plot = False)
-        print best_depth
-        print max_cv_accuracy
+        best_depth, max_cv_accuracy, plot_dat = cu.cross_val_sweep(X_train, Y_train, plot = False)
+        print "best depth is {}".format( best_depth)
+        print "max_cv_accuracy is {}".format(max_cv_accuracy)
 
         df = pd.DataFrame(np.array(plot_dat).transpose(), columns=['max depth', 'accuracy', 'std'])
 
-
+        ##################### 3.2 TRAIN and CLASSIFY 
         clf = cu.train_clf(X_train, Y_train, best_depth)
 
         reload(cu)
@@ -124,27 +119,30 @@ for i in range(4):
         clf_scores = cu.clf_metrics(P_train, P_test, Y_train, Y_test)
         print clf_scores['test']
 
-
+        #### get threshold with best f-measure on validation dataset
         reload(eu)
         best_thresh, max_fscore, plot_data = eu.get_best_threshold(Y_valid, P_valid)
-        print "besth threshold = %s" % best_thresh
+        max_fscore = 0.0
+        print "best threshold = %s" % best_thresh
         print "maximum achieved f score = %s" % max_fscore
 
-
+        # classify and add the melody probability for each contour as a field in the dict
         for key in test_contour_dict.keys():
             test_contour_dict[key] = eu.contour_probs(clf, test_contour_dict[key],idxStartFeatures,idxEndFeatures)
 
-
+        ################### 3.3. Melody decoding. 
+        #####  viterbi decoding 
         reload(gm)
         mel_output_dict = {}
         for i, key in enumerate(test_contour_dict.keys()):
             print key
-            mel_output_dict[key] = gm.melody_from_clf(test_contour_dict[key], prob_thresh=best_thresh)
+#             mel_output_dict[key] = gm.melody_from_clf(test_contour_dict[key], prob_thresh=best_thresh)
+            mel_output_dict[key] = contours_to_vocal(test_contour_dict[key], prob_thresh=best_thresh)
+            
 
 
 
-
-
+        ################ EVALUATION
         reload(gm)
 
         mel_scores = gm.score_melodies(mel_output_dict, test_annot_dict)
@@ -171,84 +169,7 @@ for i in range(4):
 
 
 
-    # Tests with multilines
-
-    #
-    # from sys import path
-    # currpath = os.getcwd()
-    # from sys import path
-    # path.append('../melody-SFContour')
-    # path.append('../')
-    # os.chdir("../melody-SFContour")
-    # import optparse
-    # parser = optparse.OptionParser("")
-    # (options, args) = parser.parse_args([])
-    # options.Pchangevx = 1
-    # options.wNoteTrans = 1
-    # options.wContourTrans = 1
-    # options.wInstrTrans = 1
-    # options.scale = 1
-    # options.scaleSurr = 1
-    # options.scalePan = 0
-    # options.hopsizeInSamples = 256
-    # options.hopsizeInSamples = 441
-    # import generate_melody_ml as gm2
-    # reload(gm2)
-    # mel_output_dict_nm = {}
-    # for i, key in enumerate(test_contour_dict.keys()):
-    #     print key
-    #     mel_output_dict_nm[key] = gm2.melody_from_clf(test_contour_dict[key], prob_thresh=best_thresh,options=options)
-    # os.chdir(currpath)
-    # print os.getcwd()
-    # os.chdir("../contour_classification")
-    #
-    # import generate_melody as gm
-    # reload(gm)
-    #
-    # # key="Beethoven-S3-I-ex2"
-    # # df = mel_output_dict[key]
-    # #
-    # # df_pos = df[df > 0]
-    # # df_zero = df[df == 0]
-    # # df_neg = df[df < 0]
-    # # plt.plot(df_pos.index, df_pos.values, ',g')
-    # # plt.plot(df_zero.index, df_zero.values, ',y')
-    # # plt.plot(df_neg.index, -1.0*df_neg.values, ',r')
-    # # plt.show()
-    # #
-    # # df.index
-    #
-    # #df2 = mel_output_dict_nm[key]
-    # #times, pitches = df2
-    # #pitches[:,0]
-    # #df_zero = df[df == 0]
-    # #df_neg = df[df < 0]
-    # #plt.plot(df_pos, df_pos, ',g')
-    # #plt.plot(df_zero, df_zero, ',y')
-    # #plt.plot(df_neg, -1.0*df_neg, ',r')
-    # #plt.show()
-    #
-    # mel_scores_nm = gm.score_melodies(mel_output_dict_nm, test_annot_dict)
-    #
-    # overall_scores = \
-    #     pd.DataFrame(columns=['VR', 'VFA', 'RPA', 'RCA', 'OA'],
-    #                  index=mel_scores_nm.keys())
-    # overall_scores['VR'] = \
-    #     [mel_scores_nm[key]['Voicing Recall'] for key in mel_scores_nm.keys()]
-    # overall_scores['VFA'] = \
-    #     [mel_scores_nm[key]['Voicing False Alarm'] for key in mel_scores_nm.keys()]
-    # overall_scores['RPA'] = \
-    #     [mel_scores_nm[key]['Raw Pitch Accuracy'] for key in mel_scores_nm.keys()]
-    # overall_scores['RCA'] = \
-    #     [mel_scores_nm[key]['Raw Chroma Accuracy'] for key in mel_scores_nm.keys()]
-    # overall_scores['OA'] = \
-    #     [mel_scores_nm[key]['Overall Accuracy'] for key in mel_scores_nm.keys()]
-    #
-    # print "Overall Scores NM"
-    # overall_scores.describe()
-    # scores_nm.append(overall_scores)
-
-
+ 
 print "End"
 
 
@@ -266,6 +187,7 @@ with open(picklefile, 'wb') as handle:
     dump(allscores, handle)
 print allscores.describe()
 
+# what is this: 
 np.argsort(clf.feature_importances_)
 np.sum(clf.feature_importances_)
 [feats[k] for k in np.argsort(clf.feature_importances_)]

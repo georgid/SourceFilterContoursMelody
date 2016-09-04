@@ -3,6 +3,7 @@ import pandas as pd
 import contour_utils as cc
 import numpy as np
 import mir_eval
+import sys
 
 
 def melody_from_clf(contour_data, prob_thresh=0.5, penalty=0, method='viterbi'):
@@ -28,7 +29,7 @@ def melody_from_clf(contour_data, prob_thresh=0.5, penalty=0, method='viterbi'):
         contour_times, _, _ = \
             cc.contours_from_contour_data(contour_data, n_end=4)
 
-        hopsizeInSamples = 256.0
+        hopsizeInSamples = 128.0
         step_size = hopsizeInSamples/44100.0  # contour time stamp step size
         mel_time_idx = np.arange(0, np.max(contour_times.values.ravel()) + 1,
                                  step_size)
@@ -68,7 +69,7 @@ def melody_from_clf(contour_data, prob_thresh=0.5, penalty=0, method='viterbi'):
     mel_dat.sort(columns='probability', inplace=True)
     mel_dat.sort(columns='time', inplace=True)
 
-    hopsizeInSamples = 256.0
+    hopsizeInSamples = 128.0
     # compute evenly spaced time grid for output
     step_size = hopsizeInSamples/44100.0  # contour time stamp step size
     mel_time_idx = np.arange(0, np.max(mel_dat['time'].values) + 1, step_size)
@@ -89,7 +90,7 @@ def melody_from_clf(contour_data, prob_thresh=0.5, penalty=0, method='viterbi'):
 
         mel_output = pd.Series(np.zeros(mel_time_idx.shape), index=mel_time_idx)
         mel_output.iloc[mel_dat['reidx']] = mel_dat['f0'].values
-
+        
     else:
         print "using viterbi decoding"
         duplicates = mel_dat.duplicated(subset='reidx') | \
@@ -102,6 +103,7 @@ def melody_from_clf(contour_data, prob_thresh=0.5, penalty=0, method='viterbi'):
 
         # fill non-duplicate values
         mel_output.iloc[not_duplicates['reidx']] = not_duplicates['f0'].values
+        print mel_output[mel_output > 0] 
 
         dups = mel_dat[duplicates]
         dups['groupnum'] = (dups.loc[:, 'reidx'].diff() > 1).cumsum().copy()
@@ -162,7 +164,10 @@ def score_melodies(mel_output_dict, test_annot_dict):
             continue
         ref = test_annot_dict[key]
         est = mel_output_dict[key]
-        if isinstance(est,pd.DataFrame) or isinstance(est,pd.Series):
+        if len(est) == 0:
+           print '{} has no melody contours detected. skipping it'.format( key)
+           continue
+        if isinstance(est,pd.DataFrame) or isinstance(est, pd.Series):
             melody_scores[key] = mir_eval.melody.evaluate(ref['time'].values,
                                                       ref['f0'].values,
                                                       est.index.values,

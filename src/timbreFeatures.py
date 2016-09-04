@@ -12,9 +12,9 @@ import essentia.streaming as es
 import sys
 from essentia import Pool
 import os
-from docutils.nodes import math
 import numpy
 from src.vocalVariance import extractMFCCs, extractVocalVar
+import traceback
 
 def compute_timbre_features(contours_bins_SAL,contours_start_times_SAL, fftgram, times, options):
     
@@ -22,19 +22,23 @@ def compute_timbre_features(contours_bins_SAL,contours_start_times_SAL, fftgram,
     NtimbreFeat = 5
     
     contourTimbre =  np.zeros([NContours, NtimbreFeat])
-    
+    a = options.stepNotes / 1200.0
+    for i, curr_contour in enumerate(contours_bins_SAL):
+            contour_f0 = options.minF0 * np.power(2, np.array(curr_contour) * a)
+            contours_bins_SAL[i] = contour_f0
     
     for i in range(NContours):
             lcontour = len(contours_bins_SAL[i])
             if lcontour > 0:
+                print 'working on contour {}...'.format(i)
                 times_contour, spectogram_harm,  hfreq, magns = compute_harmonic_magnitudes(contours_bins_SAL[i], contours_start_times_SAL[i], fftgram, times, options )
                 mfccs_array = extractMFCCs(spectogram_harm)
-                vv_array = extractVocalVar(mfccs_array, 2048, options)
+                vv_array = extractVocalVar(mfccs_array, 2048, NtimbreFeat, options)
                 
                 # take median over features
                 median_timbre_features = numpy.median(vv_array, axis = 0)
                 
-                contourTimbre[i,:] = median_timbre_features
+                contourTimbre[i,:] = median_timbre_features.T
     
     if (options.plotting):
         import pylab as plt
@@ -43,43 +47,56 @@ def compute_timbre_features(contours_bins_SAL,contours_start_times_SAL, fftgram,
     return contourTimbre
 
 
-def compute_harmonic_magnitudes(contour_bins_SAL, contour_start_time_SAL, fftgram, times, options ):
+
+def compute_harmonic_magnitudes(contour_f0s, contour_start_time, fftgram, times, options ):
     '''
     Compute for each frame harm amplitude
     convert cent bins to herz
     get harmonic partials form original spectrum
     '''
     
-    run_harm_model_anal = HarmonicModelAnal()
+    run_harm_model_anal = HarmonicModelAnal(nHarmonics=30)
     
     # TODO: sanity check: times == len(fftgram) and contour_start_time_SAL in times
-    len_contour = len(contour_bins_SAL)
+   
    
     #### at which timestamp starts contour from whole audio? 
     #      there could be some inprecision in the timestamp
     time_interval_min = float(options.hopsizeInSamples) / options.Fs /2.0
-    idx_start_where = np.where(abs( times - contour_start_time_SAL) < time_interval_min )
+    idx_start_where = np.where(abs( times - contour_start_time) < time_interval_min )
     if len(idx_start_where[0]) != 1:
         sys.exit('there should be one timestamp with this pitch')
     idx_start = idx_start_where[0][0]
     
     pool = Pool()
     
-    for i, idx in enumerate(range(idx_start, idx_start + len_contour)):
+    for i, contour_f0 in enumerate(contour_f0s):
         
-        fft = fftgram[idx]
+        fft = fftgram[idx_start + i]
         # convert to freq : 
-        f0 = options.minF0 * pow(2, contour_bins_SAL[i] * options.stepNotes / 1200.0)
-        hfreq, magns, phases = run_harm_model_anal(fft, f0)
+        hfreq, magns, phases = run_harm_model_anal(fft, contour_f0)
         spectrum = harmonics_to_spectrum(hfreq, magns, phases, options)
         pool.add('spectrum', spectrum)
         pool.add('hfreq', hfreq)
         pool.add('magns', magns)
        
-    
-    times_contour =   contour_start_time_SAL +  numpy.arange(len_contour) *  float(options.hopsizeInSamples) / options.Fs
+    len_contour = len(contour_f0s)
+    times_contour =   contour_start_time +  numpy.arange(len_contour) *  float(options.hopsizeInSamples) / options.Fs
     return times_contour, pool['spectrum'],  pool['hfreq'], pool['magns']
 
+def compute_harm_variation(hfreq, magns):
+    '''
+    find frequencies of first 4 formants
+    variance of frequency of these formants
+    human voice     
+    '''
+
+def compute_amplitude_variation(hfreq, magns):
+    '''
+    
+    variance of amplitudes harmonics
+     
+    '''
 
 def harmonics_to_spectrum(hfreq, magns, phases, options):
     '''
@@ -121,11 +138,6 @@ def createDataFrameWithExtraFeatures(contours_start_times_SAL,contour_bins,timbr
 
     return extraFeatures
 
-def loadContour():
-    import contour_classification.contour_utils as cc
-    contour_fpath = 'recording.ctr'
-    cdat = cc.load_contour_data(contour_fpath, normalize=False)
-    print cdat
 
 if __name__ == '__main__':
     pass

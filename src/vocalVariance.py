@@ -16,7 +16,8 @@ from matplotlib import pyplot
 
 
 varianceLength = 1 # in sec
-plotting = True
+plotting = False
+# plotting = True
 
 def extractMFCCs(spectogram):
     '''
@@ -47,13 +48,11 @@ def extractMFCCs(spectogram):
     return mfccs_array
 
 
-def extractVocalVar(mfccs_array, _frameSize, options):
+def extractVocalVar(mfccs_array, _frameSize, num_mfccs_var, options):
     '''
     vocal variance
     see Lehner et al. - On the reduction of false positives in singing voice detection (2.3)
     '''
-    
-    num_mfccs_var = 5
     
     mfccs_array = mfccs_array[:, 1:num_mfccs_var+1]
     
