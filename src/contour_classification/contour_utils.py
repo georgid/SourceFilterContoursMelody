@@ -3,10 +3,12 @@
 import pandas as pd
 import numpy as np
 import mir_eval
-from src.Parameters import Parameters
-from src.timbreFeatures import compute_harmonic_magnitudes
-from src.HarmonicSummationSF import calculateSpectrum
-from src import parsing
+from Parameters import Parameters
+from timbreFeatures import compute_harmonic_magnitudes
+from HarmonicSummationSF import calculateSpectrum
+import sys
+sys.path.append('..')
+import parsing
 
 try:
     import matplotlib.pyplot as plt

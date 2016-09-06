@@ -1,8 +1,8 @@
-from src.timbreFeatures import compute_timbre_features,\
+from timbreFeatures import compute_timbre_features,\
     createDataFrameWithExtraFeatures
-from src.HarmonicSummationSF import calculateSpectrum, calculateSF
+from HarmonicSummationSF import calculateSpectrum, calculateSF
 import json
-from src.Parameters import Parameters
+from Parameters import Parameters
 __author__ = 'juanjobosch'
 
 import sys, os

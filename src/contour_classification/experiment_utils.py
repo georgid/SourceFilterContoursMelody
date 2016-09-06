@@ -9,8 +9,8 @@ import os
 import sys
 import matplotlib.pyplot as plt
 import seaborn as sns
-from src.melodyExtractionFromSalienceFunction import CONTOUR_EXTENSION
-from src.Parameters import Parameters
+from melodyExtractionFromSalienceFunction import CONTOUR_EXTENSION
+from Parameters import Parameters
 sns.set()
 
 

@@ -5,7 +5,7 @@ Created on Aug 26, 2016
 '''
 
 import numpy as np
-from src.HarmonicSummationSF import calculateSpectrum
+from HarmonicSummationSF import calculateSpectrum
 from essentia.standard import HarmonicModelAnal
 from essentia.standard import *
 import essentia.streaming as es
@@ -13,7 +13,7 @@ import sys
 from essentia import Pool
 import os
 import numpy
-from src.vocalVariance import extractMFCCs, extractVocalVar
+from vocalVariance import extractMFCCs, extractVocalVar
 import traceback
 from matplotlib import pyplot
 

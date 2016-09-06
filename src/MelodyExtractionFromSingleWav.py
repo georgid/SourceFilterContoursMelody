@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from src.HarmonicSummationSF import calculateSpectrum
+from HarmonicSummationSF import calculateSpectrum
 __author__ = "Juan Jose Bosch"
 __email__ = "juan.bosch@upf.edu"
 

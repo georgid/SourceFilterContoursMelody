@@ -17,9 +17,9 @@ import json
 import matplotlib.pyplot as plt
 import seaborn as sns
 import sys
-from src.contour_selection_VD import contours_to_vocal
-from src.Parameters import Parameters
-from src.main_contour_extraction import load_labeled_contours
+from contour_selection_VD import contours_to_vocal
+from Parameters import Parameters
+from main_contour_extraction import load_labeled_contours
 
 
 

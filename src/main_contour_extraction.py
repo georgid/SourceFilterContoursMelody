@@ -5,11 +5,11 @@ Created on Sep 2, 2016
 '''
 import os
 import json
-from src.melodyExtractionFromSalienceFunction import MEFromSF
-from src.HarmonicSummationSF import calculateSpectrum, calculateSF
+from melodyExtractionFromSalienceFunction import MEFromSF
+from HarmonicSummationSF import calculateSpectrum, calculateSF
 import sys
 import pandas as pd
-from src.Parameters import Parameters
+from Parameters import Parameters
 
 # mel_type = 1
 #     #  for iKala
@@ -40,12 +40,11 @@ def create_contours_and_store(contours_path):
     
     
 
-    wav_path = "/home/georgid/Documents/iKala/Wavfile/" 
-        
+           
     for fileName in Parameters.tracks:
 
         options.pitch_output_file    = contours_path + fileName
-        wavfile_  = wav_path + fileName + '.wav'
+        wavfile_  = Parameters.iKala_wav_URI + fileName + '.wav'
         spectogram, fftgram = calculateSpectrum(wavfile_, options.hopsizeInSamples)
         timesHSSF, HSSF = calculateSF(spectogram,  options.hopsizeInSamples)
         HSSF = HSSF.T
@@ -97,6 +96,10 @@ def load_labeled_contours(tracks, contours_path):
 
 if __name__ == '__main__':
     
+    if len(sys.argv) != 2:
+        sys.exit('usage: {} <path-to-ikala>'.format(sys.argv[0]))
+    path_ = sys.argv[1]
+    Parameters.iKala_URI = path_
     contours_path = Parameters.iKala_annotation_URI
     create_contours_and_store(contours_path)
     dset_contour_dict_labeled, dset_annot_dict = compute_all_overlaps_and_store(contours_path)
