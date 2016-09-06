@@ -16,9 +16,10 @@ import os
 import json
 import matplotlib.pyplot as plt
 import seaborn as sns
-from src import Parameters.Parameters
 import sys
 from src.contour_selection_VD import contours_to_vocal
+from src.Parameters import Parameters
+from src.main_contour_extraction import load_labeled_contours
 
 
 
@@ -45,8 +46,8 @@ scores_nm = []
 #with open('melody_trackids.json', 'r') as fhandle:
 #    track_list = json.load(fhandle)
 # For Orchset
-with open('melody_trackids_orch.json', 'r') as fhandle:
-    track_list = json.load(fhandle)
+# with open('melody_trackids_orch.json', 'r') as fhandle:
+#     track_list = json.load(fhandle)
 
     #  for iKala
 if Parameters.datasetIKala:
@@ -63,9 +64,9 @@ dset_contour_dict, dset_annot_dict = load_labeled_contours(tracks, contours_path
 mdb_files, splitter = eu.create_splits(test_size=0.25)
 
 
-# repeat split into train and test 4 times
+# repeat split into train and test 1 times
 for i in range(1):
-    for train, test in splitter: # each splitting is repeated 5 times
+    for train, test in splitter: # each splitting is repeated 5 times. see ShuffleLabel 
         random.shuffle(train)
         n_train = len(train) - (len(test)/2)
         train_tracks = mdb_files[train[:n_train]]
@@ -136,8 +137,8 @@ for i in range(1):
         mel_output_dict = {}
         for i, key in enumerate(test_contour_dict.keys()):
             print key
-#             mel_output_dict[key] = gm.melody_from_clf(test_contour_dict[key], prob_thresh=best_thresh)
-            mel_output_dict[key] = contours_to_vocal(test_contour_dict[key], prob_thresh=best_thresh)
+            mel_output_dict[key] = gm.melody_from_clf(test_contour_dict[key], prob_thresh=best_thresh)
+#             mel_output_dict[key] = contours_to_vocal(test_contour_dict[key], prob_thresh=best_thresh)
             
 
 

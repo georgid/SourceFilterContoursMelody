@@ -18,25 +18,27 @@ from src.vocalVariance import extractMFCCs, extractVocalVar
 from src.contour_classification.experiment_utils import get_data_files
 from src.contour_classification.contour_utils import contours_from_contour_data,\
     plot_contours, plot_contours_interactive
-from src.contour_classification.run_contour_training_melody_extraction import contours_path,\
-    load_labeled_contours
+from src.Parameters import Parameters
+
 OLAP_THRESH = 0.5
 
-test_track = '10161_chorus'
+
+
 
 def test_compute_harmonic_ampl_2(args):
     '''
     test computing of harmonic amplitudes with essentia
-    load all contours saved as pandas dataframes. If they have already the timbre features, they are recomputed here.  
+    load the salience bins, saved as pandas dataframes. extract complex fft spectrum and compute harmonic amplitudes  
+    If they have already the timbre features, they are recomputed here.  
     '''
     
     args, options = parsing.parseOptions(args)
     
     
-    _, fftgram = calculateSpectrum(test_track+ '.wav', options.hopsizeInSamples)
+    _, fftgram = calculateSpectrum(Parameters.test_track+ '.wav', options.hopsizeInSamples)
     timestamps_recording = np.arange(len(fftgram)) * float(options.hopsizeInSamples) / options.Fs
         
-    contour_data_frame, adat = get_data_files(test_track, meltype=1)
+    contour_data_frame, adat = get_data_files(Parameters.test_track, meltype=1)
     c_times, c_freqs, _ = contours_from_contour_data(contour_data_frame)
     
     for (times, freqs) in zip(c_times.iterrows(), c_freqs.iterrows()): # for each contour
@@ -48,12 +50,9 @@ def test_compute_harmonic_ampl_2(args):
         times = times[~np.isnan(times)]
         freqs = freqs[~np.isnan(freqs)]
         
-        #plot contours
 
         # compute harm magns
         _, spectogram_contour, hfreqs, magns =  compute_harmonic_magnitudes(freqs, times[0], fftgram, timestamps_recording, options )
-        
-
         
 #         save_harmonics(times, hfreqs, test_track)
         # plot spectrogram per contour

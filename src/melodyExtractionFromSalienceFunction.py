@@ -10,10 +10,7 @@ from essentia import *
 from essentia.standard import *
 import contourExtraction as ce
 
-CONTOUR_EXTENSION = ''
-if Parameters.useTimbre:
-    CONTOUR_EXTENSION = '.timbre'
-CONTOUR_EXTENSION += '.ctr'    
+   
 
 
     
@@ -212,7 +209,7 @@ def MEFromSF(times, SF, fftgram, options):
                 contour_data = ce.compute_contour_data(contours_bins_SAL, contours_saliences_SAL,
                                                        contours_start_times_SAL, stepNotes, options.minF0,
                                                        options.hopsize, extra_features=extraFeatures)
-                picklefile = options.pitch_output_file + CONTOUR_EXTENSION
+                picklefile = options.pitch_output_file + Parameters.CONTOUR_EXTENSION
                 from pickle import dump
                 with open(picklefile, 'wb') as handle:
                     dump(contour_data, handle)

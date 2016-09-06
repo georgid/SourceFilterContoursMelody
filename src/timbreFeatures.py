@@ -15,8 +15,15 @@ import os
 import numpy
 from src.vocalVariance import extractMFCCs, extractVocalVar
 import traceback
+from matplotlib import pyplot
 
-def compute_timbre_features(contours_bins_SAL,contours_start_times_SAL, fftgram, times, options):
+
+
+
+
+
+
+def compute_timbre_features(contours_bins_SAL, contours_start_times_SAL, fftgram, times, options):
     
     NContours = len(contours_bins_SAL)
     NtimbreFeat = 5
@@ -90,6 +97,7 @@ def compute_harm_variation(hfreq, magns):
     variance of frequency of these formants
     human voice     
     '''
+    pass
 
 def compute_amplitude_variation(hfreq, magns):
     '''

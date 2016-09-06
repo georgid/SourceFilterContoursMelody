@@ -4,6 +4,9 @@ import pandas as pd
 import numpy as np
 import mir_eval
 from src.Parameters import Parameters
+from src.timbreFeatures import compute_harmonic_magnitudes
+from src.HarmonicSummationSF import calculateSpectrum
+from src import parsing
 
 try:
     import matplotlib.pyplot as plt
@@ -227,7 +230,7 @@ def plot_contours(contour_data, annot_data, contour_data2=None):
     plt.plot(annot_data['time'], annot_data['f0'], '.k')
     plt.show()
 
-def plot_contours_interactive(contour_data, annot_data, contour_data2=None):
+def plot_contours_interactive(contour_data, annot_data, track, contour_data2=None):
     """ Plot contours against annotation.
 
     Parameters
@@ -237,6 +240,10 @@ def plot_contours_interactive(contour_data, annot_data, contour_data2=None):
     annot_data : DataFrame
         Pandas data frame with all annotation data.
     """
+    
+    list_melodycontour_indices = [ 3, 5, 6, 12, 15]
+    list_nonmelodycontour_indices = [ 7]
+    
     if contour_data2 is not None:
         c_times2, c_freqs2, _ = contours_from_contour_data(contour_data2)
         for (times, freqs) in zip(c_times2.iterrows(), c_freqs2.iterrows()):
@@ -258,8 +265,29 @@ def plot_contours_interactive(contour_data, annot_data, contour_data2=None):
         plt.plot(annot_data['time'], annot_data['f0'], '.k')
         plt.plot(times, freqs, '.r')
         plt.show()
+        
+        if i in list_melodycontour_indices: # show harmonics for only 
+            compute_and_plot_harmoncis(times, freqs, track)
+#         if i in list_nonmelodycontour_indices: # show harmonics for only 
+#             compute_and_plot_harmoncis(times, freqs, track)
 
-
+def compute_and_plot_harmoncis(times, freqs, track ):
+        
+        args, options = parsing.parseOptions([])
+        _, fftgram = calculateSpectrum(track + '.wav', 128)
+        timestamps_recording = np.arange(len(fftgram)) * float(128) / 44100
+        _, spectogram_contour, hfreqs, magns =  compute_harmonic_magnitudes(freqs, times[0], fftgram, timestamps_recording, options )
+        # how many harmonics
+        until_Harm = 10
+        for i in range(len(hfreqs)):
+            curr_hFreqs = hfreqs[i]
+            indices_zeros = np.where(curr_hFreqs[:until_Harm] == 0)[0]
+            if len(indices_zeros) != 0:
+                continue
+            plt.plot(curr_hFreqs[:until_Harm], magns[i][:until_Harm])
+            plt.show()
+    
+    
 def compute_overlap(contour_data, annot_data):
     """ Compute percentage of overlap of each contour with annotation.
 

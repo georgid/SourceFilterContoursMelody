@@ -20,7 +20,7 @@ from src.Parameters import Parameters
 
 
 
-def create_contours(contours_path):
+def create_contours_and_store(contours_path):
     import parsing
     
     (args,options) = parsing.parseOptions(sys.argv)
@@ -38,15 +38,11 @@ def create_contours(contours_path):
     options.plotting = False
     
     
-    with open('contour_classification/melody_trackids_iKala.json', 'r') as fhandle:
-        track_list = json.load(fhandle)
-    
-    track_list = track_list['tracks']
     
 
     wav_path = "/home/georgid/Documents/iKala/Wavfile/" 
         
-    for fileName in track_list:
+    for fileName in Parameters.tracks:
 
         options.pitch_output_file    = contours_path + fileName
         wavfile_  = wav_path + fileName + '.wav'
@@ -101,10 +97,10 @@ def load_labeled_contours(tracks, contours_path):
 
 if __name__ == '__main__':
     
-    Parameters.useTimbre = False
     contours_path = Parameters.iKala_annotation_URI
-#     create_contours(contours_path)
+    create_contours_and_store(contours_path)
     dset_contour_dict_labeled, dset_annot_dict = compute_all_overlaps_and_store(contours_path)
+
 
     
 

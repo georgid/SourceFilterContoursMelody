@@ -8,7 +8,6 @@ from src.contour_classification.contour_utils import plot_contours_interactive
 from src.main_contour_extraction import load_labeled_contours
 from src.Parameters import Parameters
 import pandas as pd
-test_track = '10161_chorus'
 
 if __name__ == '__main__':
     contours_path = Parameters.iKala_annotation_URI
@@ -21,8 +20,8 @@ if __name__ == '__main__':
 #     dset_contour_dict, dset_annot_dict = eu.compute_all_overlaps(track_list, meltype=1)
 #     
 
-    track_list = [test_track]
-    track_list = Parameters.tracks
+    track_list = [Parameters.test_track]
+#     track_list = Parameters.tracks
     dset_contour_dict_labeled, dset_annot_dict = load_labeled_contours(track_list, contours_path)
     
     contour_data = dset_contour_dict_labeled[dset_contour_dict_labeled.keys()[0]]
@@ -35,7 +34,7 @@ if __name__ == '__main__':
     nonmelody_contour_data =  contour_data[contour_data['labels'] == 0]
     
     import matplotlib.pyplot as plt
-#     plot_contours_interactive(contour_data, dset_annot_dict[test_track])
+    plot_contours_interactive(contour_data, dset_annot_dict[Parameters.test_track], Parameters.test_track)
     
 #     for column_name in  contour_data.columns.values:
 #         print column_name

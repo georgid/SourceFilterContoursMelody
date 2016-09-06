@@ -150,6 +150,18 @@ Lehner - MFCCs
 dynamic features
 \end_layout
 
+\begin_layout Standard
+A contour has continuous pitch, so relatively same pitch .
+ IF no big pitch range of pitch, relatively similar spectral shape for a
+ musical instrument.
+ But a vocal contour might vary the the timbre because of vowels.
+ 
+\end_layout
+
+\begin_layout Standard
+Beginning of contour is not stable, so take 10:90 percent of contour time
+\end_layout
+
 \begin_layout Section
 Approach
 \end_layout

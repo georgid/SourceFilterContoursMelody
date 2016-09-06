@@ -11,10 +11,17 @@ dir_tracks_iKala = os.path.join( os.path.dirname(os.path.realpath(__file__)) , '
 class Parameters(object):
     datasetIKala  = True
     iKala_annotation_URI = "/home/georgid/Documents/iKala/PitchLabel/"
-    useTimbre = True
+    useTimbre = False
     
     if datasetIKala:
         with open(dir_tracks_iKala, 'r') as fhandle:
             track_list = json.load(fhandle)
     
     tracks = track_list['tracks']
+    
+    test_track = '10161_chorus'
+    
+    CONTOUR_EXTENSION = ''
+    if useTimbre:
+        CONTOUR_EXTENSION = '.timbre'
+    CONTOUR_EXTENSION += '.ctr' 

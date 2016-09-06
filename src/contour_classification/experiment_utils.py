@@ -9,7 +9,6 @@ import os
 import sys
 import matplotlib.pyplot as plt
 import seaborn as sns
-from src.contour_classification.contour_utils import plot_contours
 from src.melodyExtractionFromSalienceFunction import CONTOUR_EXTENSION
 from src.Parameters import Parameters
 sns.set()
