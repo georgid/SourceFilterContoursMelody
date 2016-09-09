@@ -13,55 +13,77 @@ import numpy as np
 from matplotlib.pyplot import imshow, show
 from matplotlib import pyplot
 # from cante.extrBarkBands import extrBarkBands
+from essentia import Pool
 
-
-varianceLength = 1 # in sec
+    # params as suggested by BErnhard Lehner
+num_mfccs = 29
+numberBands = 30
+highFrequencyBound = 11025
+frameSize_block = 0.8 # s
+hopSize_block = 0.2 # s
+varianceWindow = 1.0 # variance on the one side in seconds
 plotting = False
 # plotting = True
 
-def extractMFCCs(spectogram):
+def extractMFCCs(audio):
     '''
-    extract mfccs fro spectromra
+    extract mfccs from spectromra
     '''
-    # 30 as suggested by BErnhard Lehner
-    num_mfccs = 30
     
     ######## compute MFCCs
     #     maybe set highFrequencyBound=22100
-    mfcc = MFCC(numberCoefficients=num_mfccs, numberBands=30)
+    frameSizeInSamples = int(round(44100 * frameSize_block))
+    hopSizeInSamples = int(round(44100 * hopSize_block))
+    inputSpectrumSize = frameSizeInSamples / 2 + 1
     
-    mfccs_array = np.zeros( (len(spectogram), num_mfccs) )
+#     inputSpectrumSize = 1025
+    mfcc = MFCC(numberCoefficients=num_mfccs, numberBands=numberBands, highFrequencyBound = highFrequencyBound, inputSize=inputSpectrumSize)
+    w = Windowing(type = 'hann')
+    spectrum = Spectrum()
+    mfccs_array = []
+    pool = Pool()
     
-    for i,spectrum in enumerate(spectogram):
+    audio = essentia.array(audio)
+    for frame in FrameGenerator(audio, frameSize = frameSizeInSamples, hopSize = hopSizeInSamples):
+        mfcc_bands, mfcc_coeffs = mfcc(spectrum(w(frame)))
+        pool.add('mfcc', mfcc_coeffs)
     
-        mfcc_bands, mfcc_coeffs = mfcc( spectrum )
-        mfccs_array[i] = mfcc_coeffs
+    
+#     mfccs_array = np.zeros( (len(spectogram), num_mfccs) )
+#     for i,spectrum in enumerate(spectogram):
+#      
+#         mfcc_bands, mfcc_coeffs = mfcc( spectrum )
+#         mfccs_array[i] = mfcc_coeffs
        
     # transpose to have it in a better shape
     # we need to convert the list to an essentia.array first (== numpy.array of floats)
     
-#     mfccs_T = essentia.array(mfccs_array).T
+#     mfccs_T = essentia.array(pool['mfcc']).T
 #     # and plot
 #     imshow(mfccs_T, aspect = 'auto', interpolation='none')
 #     show() # unnecessary if you started "ipython --pylab" 
 
-    return mfccs_array
+    return pool['mfcc']
 
 
-def extractVocalVar(mfccs_array, _frameSize, num_mfccs_var, options):
+
+def compute_var_mfccs(mfccs_array, hl_mfcc_coeff, options):
     '''
     vocal variance
     see Lehner et al. - On the reduction of false positives in singing voice detection (2.3)
+    
+    params:
+    hl_mfcc_coeff - from 1 to to to  mfcc coefficient
     '''
     
-    mfccs_array = mfccs_array[:, 1:num_mfccs_var+1]
+    mfccs_array = mfccs_array[:, 1:hl_mfcc_coeff+1]
     
     num_mfccs= mfccs_array.shape[1]       
     num_frames = len(mfccs_array)
     
    
     # variance num frames
-    numFrVar = int(math.floor(options.Fs * varianceLength / _frameSize))
+    numFrVar = int(math.floor(varianceWindow / hopSize_block))
     vocal_var_array = np.zeros(mfccs_array.shape)
     
     for i in range(0, num_frames):

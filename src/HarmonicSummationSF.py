@@ -13,13 +13,13 @@ def calculateSpectrum(filename, hopsizeFrames):
     hopsizeFrames: size of the hop in frames
     '''
     
-    hopSize = int(hopsizeFrames)
-    frameSize = 2048
+    hopSize_block = int(hopsizeFrames)
+    frameSize_block = 2048
 
     # Setting the algorithms
-    run_windowing = Windowing(type='hann', zeroPadding=3 * frameSize)
-    run_spectrum = Spectrum(size=frameSize * 4)
-    run_FFT = FFT(size=frameSize * 4)
+    run_windowing = Windowing(type='hann', zeroPadding=3 * frameSize_block)
+    run_spectrum = Spectrum(size=frameSize_block * 4)
+    run_FFT = FFT(size=frameSize_block * 4)
     
     pool = Pool();
     
@@ -33,7 +33,7 @@ def calculateSpectrum(filename, hopsizeFrames):
     # 2. Cut audio into frames and compute for each frame:
     #    spectrum -> spectral peaks -> pitch salience function
     # With startFromZero = False, the first frame is centered at time = 0, instead of half the fremesize
-    for frame in FrameGenerator(audio, frameSize=frameSize, hopSize=hopSize, startFromZero=False):
+    for frame in FrameGenerator(audio, frameSize=frameSize_block, hopSize=hopSize_block, startFromZero=False):
         frame = run_windowing(frame)
         spectrum = run_spectrum(frame)
         fft = run_FFT(frame)
@@ -71,7 +71,7 @@ def calculateSF(spectogram, hopSizeFrames):
         pool.add('allframes_salience', salience)
 
     salience = pool['allframes_salience']
-    hopSize = int(hopSizeFrames)
-    times = arange(len(pool['allframes_salience'])) * float(hopSize) / sampleRate
+    hopSize_block = int(hopSizeFrames)
+    times = arange(len(pool['allframes_salience'])) * float(hopSize_block) / sampleRate
 
     return times, salience

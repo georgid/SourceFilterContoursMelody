@@ -82,7 +82,7 @@ def combine2(timesHF0, HF0init, timesHSSF, HSSF, G=0, mu=1, doConvolution=True):
     # mu=1 (no scaling) in MIREX (2015,2016), SMC2016 and ISMIR2016
     HF0 = HF0 ** (1. / mu)
 
-    hopSize = np.mean(np.diff(timesHF0))
+    hopSize_block = np.mean(np.diff(timesHF0))
 
     # Combining salience functions
     N1Fr = np.argmin(np.abs(timesHF0 - timesHSSF[0]))
@@ -95,7 +95,7 @@ def combine2(timesHF0, HF0init, timesHSSF, HSSF, G=0, mu=1, doConvolution=True):
 
     NF0 = max(Nf0Dur, Nf0Dur)
     NFr = max(NfrMel, NfrDur) + N1Fr
-    times = timesHF0[0] + np.arange(NFr) * hopSize
+    times = timesHF0[0] + np.arange(NFr) * hopSize_block
 
     # Setting shape of the combination
     salcomb = np.zeros([NF0, NFr])

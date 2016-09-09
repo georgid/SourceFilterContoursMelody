@@ -177,7 +177,8 @@ def MEFromSF(times, SF, fftgram, options):
     contourTimbre = None 
     if Parameters.useTimbre:
         try:
-             contourTimbre = compute_timbre_features(contours_bins_SAL, contours_start_times_SAL, fftgram, times, options)
+             
+            contourTimbre = compute_timbre_features(contours_bins_SAL, contours_start_times_SAL, fftgram, times, options)
         except:
             print "Error computing timbre features"
 

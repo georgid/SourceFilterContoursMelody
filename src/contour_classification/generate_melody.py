@@ -102,11 +102,15 @@ def melody_from_clf(contour_data, prob_thresh=0.5, penalty=0, method='viterbi'):
         mel_output = pd.Series(np.zeros(mel_time_idx.shape), index=mel_time_idx)
 
         # fill non-duplicate values
-        mel_output.iloc[not_duplicates['reidx']] = not_duplicates['f0'].values
-        print mel_output[mel_output > 0] 
+#         mel_output.iloc[not_duplicates['reidx']] = not_duplicates['f0'].values
+        
+        for i, idx in enumerate(not_duplicates['reidx']):
+            mel_output.set_value(mel_output.index[idx], not_duplicates.iloc[i]['f0'])
+#         print mel_output[mel_output > 0] 
 
         dups = mel_dat[duplicates]
         dups['groupnum'] = (dups.loc[:, 'reidx'].diff() > 1).cumsum().copy()
+#         print dups['groupnum']
         groups = dups.groupby('groupnum')
 
         for _, group in groups:
@@ -134,9 +138,13 @@ def melody_from_clf(contour_data, prob_thresh=0.5, penalty=0, method='viterbi'):
 
             path = viterbi(posterior, transition_matrix=transition_matrix,
                            prior=None, penalty=penalty)
-
-            mel_output.iloc[times] = f0_vals[np.arange(len(path)), path]
-
+            
+            if len(path) != len(times):
+                sys.exit( 'problem in len decoding path')
+#                 mel_output.iloc[times] = f0_vals[np.arange(len(path)), path]
+            for i,time in enumerate(times):
+                mel_output.set_value(mel_output.index[time], f0_vals[i, path[i]] )
+   
     return mel_output
 
 

@@ -9,7 +9,6 @@ import os
 import sys
 import matplotlib.pyplot as plt
 import seaborn as sns
-from melodyExtractionFromSalienceFunction import CONTOUR_EXTENSION
 from Parameters import Parameters
 sns.set()
 
@@ -77,7 +76,7 @@ def get_data_files(test_track, meltype=1):
     if Parameters.datasetIKala:
         annot_path = os.path.join(Parameters.iKala_annotation_URI)
     
-        contour_suffix =  CONTOUR_EXTENSION
+        contour_suffix =  Parameters.CONTOUR_EXTENSION
         contours_path = Parameters.iKala_annotation_URI
         annot_suffix = "pv"
         contour_fname = "%s%s" % (test_track, contour_suffix)

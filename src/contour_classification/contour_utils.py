@@ -3,11 +3,12 @@
 import pandas as pd
 import numpy as np
 import mir_eval
+import sys
+sys.path.append('..')
+from timbreFeatures import get_ts_contour
 from Parameters import Parameters
 from timbreFeatures import compute_harmonic_magnitudes
 from HarmonicSummationSF import calculateSpectrum
-import sys
-sys.path.append('..')
 import parsing
 
 try:
@@ -192,7 +193,9 @@ def load_annotation(fpath):
         annot_data.insert(0, 'time', timestamps)
         annot_data.columns = ['time', 'f0']
         # convert to hz
-#         hz_f0 =  mir_eval.util.midi_to_hz(annot_data['f0'])
+#         hz_f0 =  mir_eval.util.midi_to_hz(annot_data['f0']) 
+        annot_data.ix[annot_data.f0==0,'f0'] = -np.inf # zero MIDIs to -inf.  because in midi2freq they will become 0 Hz.
+
         hz_f0 = 440.0 * (2.0 ** ((annot_data['f0'] - 69.0)/12.0))        
         annot_data['f0'] = hz_f0
     # Add column with annotation values in cents
@@ -268,22 +271,42 @@ def plot_contours_interactive(contour_data, annot_data, track, contour_data2=Non
         plt.plot(times, freqs, '.r')
         plt.show()
         
-        if i in list_melodycontour_indices: # show harmonics for only 
+        if i in list_melodycontour_indices: # show harmonics for only melody 
             compute_and_plot_harmoncis(times, freqs, track)
-#         if i in list_nonmelodycontour_indices: # show harmonics for only 
+#         if i in list_nonmelodycontour_indices: # show harmonics for only  non-melody
 #             compute_and_plot_harmoncis(times, freqs, track)
 
+def plot_decoded_melody(mel_output):
+    '''
+    plot decoded melody for a whole recording
+    param: mel_output : pandas Series
+    '''
+    
+    times = []
+    values = []        
+    for time, val in mel_output.iteritems():
+        times.append(time)
+        values.append(val)
+    
+    plt.plot(times, values) 
+    plt.show()
+
 def compute_and_plot_harmoncis(times, freqs, track ):
+        '''
+        visualize harm magnitudes
+        skip timeframes with any hfreq = 0
+        '''
         
         args, options = parsing.parseOptions([])
         _, fftgram = calculateSpectrum(track + '.wav', 128)
         timestamps_recording = np.arange(len(fftgram)) * float(128) / 44100
-        _, spectogram_contour, hfreqs, magns =  compute_harmonic_magnitudes(freqs, times[0], fftgram, timestamps_recording, options )
+        times_contour, idx_start = get_ts_contour(freqs, times[0], timestamps_recording, options)
+        hfreqs, magns, _ =  compute_harmonic_magnitudes(freqs,  fftgram, idx_start, options )
         # how many harmonics
         until_Harm = 10
         for i in range(len(hfreqs)):
             curr_hFreqs = hfreqs[i]
-            indices_zeros = np.where(curr_hFreqs[:until_Harm] == 0)[0]
+            indices_zeros = np.where(curr_hFreqs[:until_Harm] == 0)[0] # sskip timeframes with any hfreq = 0
             if len(indices_zeros) != 0:
                 continue
             plt.plot(curr_hFreqs[:until_Harm], magns[i][:until_Harm])
@@ -484,10 +507,14 @@ def join_contours(contours_list):
     return all_contours
 
 def getFeatureInfo(contourDF):
-    if 'first_time' in contourDF.columns:
-        idxEndFeatures = contourDF.columns.get_loc('first_time')-1
+    if Parameters.useTimbre:
+        if 'first_time' in contourDF.columns:
+            idxEndFeatures = contourDF.columns.get_loc('first_time')-1
+        else:
+            sys.exit('contour DataFrame does not have field first_time')
     else:
-        idxEndFeatures = 11     # From the original implementation, 12 is the last feature
+            idxEndFeatures = 11     # From the original implementation, 12 is the last feature
+    
     if 'duration' in contourDF.columns:
         idxStartFeatures = contourDF.columns.get_loc('duration')
     else:

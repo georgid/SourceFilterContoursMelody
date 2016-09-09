@@ -26,6 +26,9 @@ def compute_harmonic_magnitudes_old(contour_bins_SAL, contour_start_time_SAL, ff
     idx_start = idx_start_where[0][0]
     
     pool = Pool()
+    run_sine_model_synth = SineModelSynth( hopSize_block=options.hopsizeInSamples, sampleRate = options.Fs) 
+    run_ifft = IFFT(size = options.windowsizeInSamples);
+    run_overl = OverlapAdd (frameSize_block = options.windowsizeInSamples, hopSize_block = options.hopsizeInSamples);
     
     for i, idx in enumerate(range(idx_start, idx_start + len_contour)):
         
@@ -33,7 +36,7 @@ def compute_harmonic_magnitudes_old(contour_bins_SAL, contour_start_time_SAL, ff
         # convert to freq : 
         f0 = options.minF0 * pow(2, contour_bins_SAL[i] * options.stepNotes / 1200.0)
         hfreq, magns, phases = run_harm_model_anal(fft, f0)
-        spectrum = harmonics_to_spectrum(hfreq, magns, phases, options)
+        spectrum, audio_frame = harmonics_to_audio(hfreq, magns, phases, run_sine_model_synth, run_ifft, run_overl )
         pool.add('spectrum', spectrum)
         pool.add('hfreq', hfreq)
         pool.add('magns', magns)

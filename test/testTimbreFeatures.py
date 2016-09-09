@@ -5,20 +5,23 @@ test compute harmonic spectrum and magnitudes
 visualize  
 @author: joro
 '''
-from src.timbreFeatures import compute_harmonic_magnitudes,\
-    compute_harmonic_magnitudes
-import json
-from src.HarmonicSummationSF import calculateSpectrum
-import numpy as np
+
 import sys
-from src import parsing
+import os
+from src.timbreFeatures import get_ts_contour, extract_vocal_var
+sys.path.append(os.path.join(os.path.dirname(__file__), '../src'))
+from timbreFeatures import compute_harmonic_magnitudes, compute_harmonic_magnitudes
+import json
+from HarmonicSummationSF import calculateSpectrum
+import numpy as np
+import parsing
 import os
 from matplotlib import pyplot
-from src.vocalVariance import extractMFCCs, extractVocalVar
-from src.contour_classification.experiment_utils import get_data_files
-from src.contour_classification.contour_utils import contours_from_contour_data,\
+from vocalVariance import extractMFCCs, compute_var_mfccs
+from contour_classification.experiment_utils import get_data_files
+from contour_classification.contour_utils import contours_from_contour_data,\
     plot_contours, plot_contours_interactive
-from src.Parameters import Parameters
+from Parameters import Parameters
 
 OLAP_THRESH = 0.5
 
@@ -33,7 +36,7 @@ def test_compute_harmonic_ampl_2(args):
     '''
     
     args, options = parsing.parseOptions(args)
-    
+    to_mfcc_coeff = 5
     
     _, fftgram = calculateSpectrum(Parameters.test_track+ '.wav', options.hopsizeInSamples)
     timestamps_recording = np.arange(len(fftgram)) * float(options.hopsizeInSamples) / options.Fs
@@ -52,16 +55,17 @@ def test_compute_harmonic_ampl_2(args):
         
 
         # compute harm magns
-        _, spectogram_contour, hfreqs, magns =  compute_harmonic_magnitudes(freqs, times[0], fftgram, timestamps_recording, options )
+
+        times_contour, idx_start = get_ts_contour(freqs, times[0], timestamps_recording, options)
+        print 'contour len: {}'.format(times[-1] - times[0])
+        vv_array = extract_vocal_var(fftgram, idx_start, freqs, to_mfcc_coeff,    options)                
         
 #         save_harmonics(times, hfreqs, test_track)
         # plot spectrogram per contour
-        pyplot.imshow(spectogram_contour)
+        pyplot.imshow(vv_array)
         pyplot.show()
         
         
-        mfccs_array = extractMFCCs(spectogram_contour)
-        vv_array = extractVocalVar(mfccs_array, 2048, 5, options)
 
 
 

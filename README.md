@@ -28,6 +28,7 @@ pandas
 scipy
 seaborn
 sklearn
+mir_eval 
 
 In order to execute the algorithm evaluated in MIREX 2016 (BG1 and BG2 submissions), it should be called from the folder which contains the source code, as:
 

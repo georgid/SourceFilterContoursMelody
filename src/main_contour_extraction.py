@@ -20,7 +20,7 @@ from Parameters import Parameters
 
 
 
-def create_contours_and_store(contours_path):
+def create_contours_and_store(tracks, contours_path):
     import parsing
     
     (args,options) = parsing.parseOptions(sys.argv)
@@ -41,7 +41,7 @@ def create_contours_and_store(contours_path):
     
 
            
-    for fileName in Parameters.tracks:
+    for fileName in tracks:
 
         options.pitch_output_file    = contours_path + fileName
         wavfile_  = Parameters.iKala_wav_URI + fileName + '.wav'
@@ -52,18 +52,17 @@ def create_contours_and_store(contours_path):
         times, pitch = MEFromSF(timesHSSF, HSSF, fftgram, options)
         
 
-def compute_all_overlaps_and_store(output_contours_path):
+def label_contours_and_store(output_contours_path, tracks):
     '''
     overlap all contours with ground truth and serialize to pandas csv
     '''
     mel_type = 1
     #  for iKala
 
-    
     # mdb_files, splitter = eu.create_splits(test_size=0.15)
     import contour_classification.experiment_utils as eu
     ########################### 3.1 Contour labeling
-    dset_contour_dict, dset_annot_dict = eu.compute_all_overlaps(Parameters.tracks, meltype=mel_type)
+    dset_contour_dict, dset_annot_dict = eu.compute_all_overlaps(tracks, meltype=mel_type)
     
     
     OLAP_THRESH = 0.5    
@@ -100,9 +99,13 @@ if __name__ == '__main__':
         sys.exit('usage: {} <path-to-ikala>'.format(sys.argv[0]))
     path_ = sys.argv[1]
     Parameters.iKala_URI = path_
+
     contours_path = Parameters.iKala_annotation_URI
-    create_contours_and_store(contours_path)
-    dset_contour_dict_labeled, dset_annot_dict = compute_all_overlaps_and_store(contours_path)
+#     tracks = [Parameters.test_track]
+    tracks = Parameters.tracks
+    create_contours_and_store(tracks, contours_path)
+    
+    dset_contour_dict_labeled, dset_annot_dict = label_contours_and_store(contours_path, tracks)
 
 
     

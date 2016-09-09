@@ -131,6 +131,7 @@ def parseOptions(argsin,wavfilerequired = False):
     (options, args) = parser.parse_args(argsin)
 
     options.hopsizeInSamples = int(round(options.hopsize*options.Fs))
+    options.windowsizeInSamples = int(round(options.windowSize*options.Fs))
 
     if ((len(args) < 1) & wavfilerequired):
         parser.error("incorrect number of arguments, use option -h for help.")
