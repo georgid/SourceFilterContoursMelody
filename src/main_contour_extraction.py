@@ -55,7 +55,7 @@ def create_contours_and_store(tracks, contours_output_path):
     for fileName in tracks:
 
         options.pitch_output_file    = contours_output_path + fileName
-        wavfile_  = Parameters.iKala_wav_URI + fileName + '.wav'
+        wavfile_  = os.path.join(Parameters.iKala_URI, 'Wavfile', fileName + '.wav')
         spectogram, fftgram = calculateSpectrum(wavfile_, options.hopsizeInSamples)
         timesHSSF, HSSF = calculateSF(spectogram,  options.hopsizeInSamples)
         HSSF = HSSF.T
@@ -70,7 +70,8 @@ def load_contour_and_extractTimbre_and_save(tracks, contours_output_path, option
     else: extract Timbre and save
     '''
     for track in tracks:
-        _, fftgram = calculateSpectrum(Parameters.iKala_wav_URI + track + '.wav', options.hopsizeInSamples)
+        wavfile_  = os.path.join(Parameters.iKala_URI, 'Wavfile', track + '.wav')
+        _, fftgram = calculateSpectrum(wavfile_, options.hopsizeInSamples)
         timestamps_recording = np.arange(len(fftgram)) * float(options.hopsizeInSamples) / options.Fs
             
         contour_data_frame, adat = get_data_files(track, meltype=1)
