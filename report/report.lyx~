@@ -70,6 +70,12 @@
 
 \begin_body
 
+\begin_layout Standard
+Abstract: We apply state of the art features for vocal non-vocal dynamic.
+ on extracted pitch contours instead of on frame-level.
+ 
+\end_layout
+
 \begin_layout Section
 Introduction
 \end_layout
@@ -80,8 +86,8 @@ Detecting vocal segments is an important problem (copy from Lehner).
  are longer.
  A segment corresponds to a melodic phrase.
  Segmentation into some candidate segments might be meaningful for singing
- voice detection, as the nature of voice within a segment usually have coherent
- characteristics: similar dynamics, pitch and timbre.
+ voice detection, because the nature of voice within a segment usually have
+ coherent characteristics: similar amplitude, pitch and timbre.
  Despite that, in most VD approaches disision is taken per frame, the context
  of a contour is lost.
  
@@ -89,14 +95,25 @@ Detecting vocal segments is an important problem (copy from Lehner).
 
 \begin_layout Standard
 On the other hand detection of pitch contours has been used for predominant
- melody extraction.
+ melody extraction [Justin].
+ 
+\color red
+here explain harmonic summation as salience function
+\color inherit
+.
  Candidate segments pitch-continuous and salience-continuous nature are
- selected and classified as being from main melody or not.
- Using only pitch-salience features gives VD with high false alarms.
+ selected and classified as being from main melody or not [Rachel].
+ Using only pitch-salience features gives VD with false alarm in the order
+ of.
  One reason is that salient contours from background instruments are detected
  as vocal.
- In this work we propose to extend a contour-classification based approach
- by adding timbral features to the classifier.
+ 
+\end_layout
+
+\begin_layout Standard
+In this work we tackle the problem of VD by extending a contour-classification
+ based approach for melody extraction by adding timbral features to the
+ classifier.
  In particular we exploit features that capture the fluctuating timbre of
  singing voice compared to other instruments
 \begin_inset Note Note
@@ -127,7 +144,9 @@ view durrieus voicing concept: source-filter model
 
 \end_inset
 
-
+ Salomon has voicing based on heuristics about salience of the main instrument
+ singing.
+ 
 \end_layout
 
 \begin_layout Subsection
@@ -150,18 +169,47 @@ Lehner - MFCCs
 dynamic features
 \end_layout
 
-\begin_layout Section
-Approach
-\end_layout
-
 \begin_layout Standard
-At a given frame if there is at least one melodic contour, it is considered
- as voiced.
+A contour has continuous pitch, so relatively same pitch .
+ IF no big pitch range of pitch, relatively similar spectral shape for a
+ musical instrument.
+ But a vocal contour might vary the the timbre because of vowels.
  
 \end_layout
 
 \begin_layout Standard
-no Viterbi decoding
+Beginning of contour is not stable, so take 10:90 percent of contour time
+\end_layout
+
+\begin_layout Section
+Method
+\end_layout
+
+\begin_layout Standard
+A block diagram can be seen here: 
+\end_layout
+
+\begin_layout Standard
+We assume that any appearance of singing will be only considerd as 'lead
+ instrument' e.g.
+ not being accompaniment or backing voice.
+ Contours are extracted 
+\color red
+using the salience function based on ..HERE Justin (see Juanjo)
+\color inherit
+.
+ We have adopted the approach for classification of contours presented in
+ [Bitt].
+ 
+\color red
+Here summary of Bittner.
+
+\color inherit
+ The thresholding is necessary to discard regions with no predominant nature.
+ Thus remaining regions with no predominant pitch are considered as non-vocal
+ already at this stage.
+ Viterbi to select the right contour when there is contour overlap.
+ 
 \end_layout
 
 \begin_layout Standard
@@ -210,15 +258,52 @@ alid, P_valid) on validation
 \end_layout
 
 \begin_layout Section
-Evaluation
+Experiments
 \end_layout
 
 \begin_layout Standard
-Evaluated on datasets: iKala easy one and medleyDB?
+Evaluated on datasets: iKala -easy one and the vocal part of medleyDB- for
+ the sake of comparison with contour classification.
+ 
 \end_layout
 
 \begin_layout Standard
-reproduce Bernhards code on iKala
+All evaluation metrics were computed using mir_eval[].
+\end_layout
+
+\begin_layout Subsection
+Salience-only contour classification Vs salience plus timbre classification
+\end_layout
+
+\begin_layout Standard
+sadsad
+\end_layout
+
+\begin_layout Subsection
+comparison with frame-based VD
+\end_layout
+
+\begin_layout Standard
+
+\color red
+reproduce Bernhards code on iKala.
+\end_layout
+
+\begin_layout Standard
+If contradictory frames are assigned a contour, their voicing is decided
+ in the context of the whole contour.
+ This is a more informed decision because a vocal contour has coherent salience.
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+This can be seen in example..
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \end_body

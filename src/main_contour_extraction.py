@@ -156,6 +156,9 @@ if __name__ == '__main__':
     
 #     Parameters.contour_URI += '/vv_hopS-0.5/'
     if whichStep_ == 1:
+        if not os.path.exists(Parameters.contour_URI):
+            os.mkdir(Parameters.contour_URI)
+            
         create_contours_and_store(Parameters.tracks, Parameters.contour_URI)
     
     elif whichStep_ == 2:
