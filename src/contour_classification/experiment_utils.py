@@ -7,9 +7,10 @@ from sklearn import metrics
 import numpy as np
 import os
 import sys
-import matplotlib.pyplot as plt
-import seaborn as sns
 from Parameters import Parameters
+if Parameters.with_MATPLOTLIB:
+    import matplotlib.pyplot as plt
+import seaborn as sns
 sns.set()
 
 

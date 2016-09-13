@@ -14,14 +14,10 @@ import random
 import glob
 import os
 import json
-import matplotlib.pyplot as plt
 import seaborn as sns
 import sys
-from contour_selection_VD import contours_to_vocal
 from Parameters import Parameters
 from main_contour_extraction import load_labeled_contours
-from src.contour_classification.contour_utils import plot_decoded_melody,\
-    plot_contours_interactive
 from src.main_contour_extraction import label_contours_and_store
 
 

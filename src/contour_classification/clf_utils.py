@@ -3,8 +3,11 @@ from sklearn.ensemble import RandomForestClassifier as RFC
 from sklearn import cross_validation
 from sklearn import metrics
 import numpy as np
-import matplotlib.pyplot as plt
 
+try:
+    import matplotlib.pyplot as plt
+except:
+    'print matplotlib not available'
 
 def cross_val_sweep(x_train, y_train, max_search=60,
                     step=5, plot=True):

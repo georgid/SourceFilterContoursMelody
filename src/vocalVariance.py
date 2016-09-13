@@ -10,8 +10,11 @@ feature vocal variance
 from essentia.standard import *
 import math
 import numpy as np
-from matplotlib.pyplot import imshow, show
-from matplotlib import pyplot
+
+from Parameters import Parameters
+if Parameters.with_MATPLOTLIB:
+    from matplotlib.pyplot import imshow, show
+    from matplotlib import pyplot
 # from cante.extrBarkBands import extrBarkBands
 from essentia import Pool
 

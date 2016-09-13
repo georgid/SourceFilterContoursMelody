@@ -10,6 +10,8 @@ subset = 'v'
  
 
 class   Parameters(object):
+    
+    with_MATPLOTLIB = False
     datasetIKala  = True
     
     iKala_URI = '/home/georgid/Documents/iKala/'

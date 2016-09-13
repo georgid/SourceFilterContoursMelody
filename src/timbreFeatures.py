@@ -17,14 +17,17 @@ import os
 import numpy
 from vocalVariance import extractMFCCs, compute_var_mfccs
 import traceback
-from matplotlib import pyplot
+if Parameters.with_MATPLOTLIB:
+    from matplotlib import pyplot
 import csv
 
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../smstool/software/models/'))
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../smstool/workspace/'))
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../smstools/software/models/'))
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../smstools/workspace/'))
 
-from smstools.workspace.harmonicModel_function import resynthesize
-
+try:
+    from harmonicModel_function import resynthesize
+except:
+    print 'sms.tools.harmonicModel not available'
 
 
 
