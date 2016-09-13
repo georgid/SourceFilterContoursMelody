@@ -10,8 +10,11 @@ import sys
 from Parameters import Parameters
 if Parameters.with_MATPLOTLIB:
     import matplotlib.pyplot as plt
-import seaborn as sns
-sns.set()
+try:
+    import seaborn as sns
+    sns.set()
+except:
+    print 'seaborn not available'
 
 
 def create_splits(test_size=0.15):

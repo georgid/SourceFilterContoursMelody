@@ -14,7 +14,10 @@ import random
 import glob
 import os
 import json
-import seaborn as sns
+try:
+    import seaborn as sns
+except:
+    print 'seaborn not available'
 import sys
 from Parameters import Parameters
 from main_contour_extraction import load_labeled_contours
