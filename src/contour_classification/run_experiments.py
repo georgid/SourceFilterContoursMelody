@@ -20,10 +20,10 @@ def run_glassceiling_experiment(meltype):
     def get_fpaths(trackid, meltype):
         contour_suffix = \
         "MIX_vamp_melodia-contours_melodia-contours_contoursall.csv"
-        contours_path = "melodia_contours"
+        contours_output_path = "melodia_contours"
 
         contour_suffix = "MIX.pitch.ctr"
-        contours_path = "/Users/jjb/Documents/PhD/data/MedleyDB/Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-1.2_pFTh-0.9_tC-75_mD-100_vxTol-1_Pchvx-1_wNoteTrans-1_wContourTrans-1_wInstrTrans-5_scale-1_-_scaleSurr-1"
+        contours_output_path = "/Users/jjb/Documents/PhD/data/MedleyDB/Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-1.2_pFTh-0.9_tC-75_mD-100_vxTol-1_Pchvx-1_wNoteTrans-1_wContourTrans-1_wInstrTrans-5_scale-1_-_scaleSurr-1"
 
         annot_suffix = "MELODY%s.csv" % str(meltype)
         mel_dir = "MELODY%s" % str(meltype)
@@ -31,14 +31,14 @@ def run_glassceiling_experiment(meltype):
                                   'Melody_Annotations', mel_dir)
 
         contour_fname = "%s_%s" % (test_track, contour_suffix)
-        contour_fpath = os.path.join(contours_path, contour_fname)
+        contour_fpath = os.path.join(contours_output_path, contour_fname)
         annot_fname = "%s_%s" % (test_track, annot_suffix)
         annot_fpath = os.path.join(annot_path, annot_fname)
 
 
         # For MEDLEY with SIMM -------------------------
         contour_suffix = "MIX.pitch.ctr"
-        contours_path = "/Users/jjb/Google Drive/PhD/conferences/ISMIR2016/SIMM-PC/MedleyDB/C4-Contours/Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-0.9_pFTh-0.9_tC-50_mD-100"
+        contours_output_path = "/Users/jjb/Google Drive/PhD/conferences/ISMIR2016/SIMM-PC/MedleyDB/C4-Contours/Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-0.9_pFTh-0.9_tC-50_mD-100"
 
         annot_suffix = "MELODY%s.csv" % str(meltype)
         mel_dir = "MELODY%s" % str(meltype)
@@ -46,7 +46,7 @@ def run_glassceiling_experiment(meltype):
                                   'Melody_Annotations', mel_dir)
 
         contour_fname = "%s_%s" % (test_track, contour_suffix)
-        contour_fpath = os.path.join(contours_path, contour_fname)
+        contour_fpath = os.path.join(contours_output_path, contour_fname)
         annot_fname = "%s_%s" % (test_track, annot_suffix)
         annot_fpath = os.path.join(annot_path, annot_fname)
 
@@ -54,12 +54,12 @@ def run_glassceiling_experiment(meltype):
         # Fot ORCHSET with SIMM --------------------------
 
         contour_suffix = "pitch.ctr"
-        contours_path = "/Users/jjb/Google Drive/PhD/conferences/ISMIR2016/SIMM-PC/Orchset/C4-Contours/Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-1.3_pFTh-0.9_tC-50_mD-100"
+        contours_output_path = "/Users/jjb/Google Drive/PhD/conferences/ISMIR2016/SIMM-PC/Orchset/C4-Contours/Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-1.3_pFTh-0.9_tC-50_mD-100"
         annot_suffix = "mel"
 
         annot_path = os.path.join('/Users/jjb/Google Drive/data/segments/excerpts/GT')
         contour_fname = "%s.%s" % (test_track, contour_suffix)
-        contour_fpath = os.path.join(contours_path, contour_fname)
+        contour_fpath = os.path.join(contours_output_path, contour_fname)
         annot_fname = "%s.%s" % (test_track, annot_suffix)
         annot_fpath = os.path.join(annot_path, annot_fname)
 
@@ -69,24 +69,24 @@ def run_glassceiling_experiment(meltype):
 
         contour_suffix = \
             "_vamp_melodia-contours_melodia-contours_contoursall.csv"
-        contours_path = "/Users/jjb/Google Drive/PhD/conferences/ISMIR2016/SIMM-PC/Orchset/BIT"
+        contours_output_path = "/Users/jjb/Google Drive/PhD/conferences/ISMIR2016/SIMM-PC/Orchset/BIT"
         annot_suffix = "mel"
         contour_fname = "%s%s" % (test_track, contour_suffix)
-        contour_fpath = os.path.join(contours_path, contour_fname)
+        contour_fpath = os.path.join(contours_output_path, contour_fname)
         annot_fname = "%s.%s" % (test_track, annot_suffix)
         annot_fpath = os.path.join(annot_path, annot_fname)
 
         # Fot ORCHSET with SIMM --------------------------
 
         contour_suffix = "pitch.ctr"
-        contours_path = "/Users/jjb/Google Drive/PhD/conferences/ISMIR2016/SIMM-PC/Orchset/C4-Contours/Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-0.9_pFTh-0.9_tC-50_mD-100"
-        #contours_path = "/Users/jjb/Google Drive/PhD/Tests/Orchset/ScContours/"
+        contours_output_path = "/Users/jjb/Google Drive/PhD/conferences/ISMIR2016/SIMM-PC/Orchset/C4-Contours/Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-0.9_pFTh-0.9_tC-50_mD-100"
+        #contours_output_path = "/Users/jjb/Google Drive/PhD/Tests/Orchset/ScContours/"
 
         annot_suffix = "mel"
 
         annot_path = os.path.join('/Users/jjb/Google Drive/data/segments/excerpts/GT')
         contour_fname = "%s.%s" % (test_track, contour_suffix)
-        contour_fpath = os.path.join(contours_path, contour_fname)
+        contour_fpath = os.path.join(contours_output_path, contour_fname)
         annot_fname = "%s.%s" % (test_track, annot_suffix)
         annot_fpath = os.path.join(annot_path, annot_fname)
 

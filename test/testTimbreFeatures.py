@@ -23,25 +23,23 @@ from contour_classification.contour_utils import contours_from_contour_data,\
     plot_contours, plot_contours_interactive
 from Parameters import Parameters
 
-OLAP_THRESH = 0.5
 
 
 
 
-def test_compute_harmonic_ampl_2(args):
+def test_compute_harmonic_ampl_2(track, options):
     '''
     test computing of harmonic amplitudes with essentia
     load the salience bins, saved as pandas dataframes. extract complex fft spectrum and compute harmonic amplitudes  
     If they have already the timbre features, they are recomputed here.  
     '''
     
-    args, options = parsing.parseOptions(args)
-    to_mfcc_coeff = 5
     
-    _, fftgram = calculateSpectrum(Parameters.test_track+ '.wav', options.hopsizeInSamples)
-    timestamps_recording = np.arange(len(fftgram)) * float(options.hopsizeInSamples) / options.Fs
         
-    contour_data_frame, adat = get_data_files(Parameters.test_track, meltype=1)
+    timestamps_recording = np.arange(len(fftgram)) * float(options.hopsizeInSamples) / options.Fs
+    _, fftgram = calculateSpectrum(track + '.wav', options.hopsizeInSamples)
+        
+    contour_data_frame, adat = get_data_files(track, meltype=1)
     c_times, c_freqs, _ = contours_from_contour_data(contour_data_frame)
     
     for (times, freqs) in zip(c_times.iterrows(), c_freqs.iterrows()): # for each contour
@@ -58,13 +56,13 @@ def test_compute_harmonic_ampl_2(args):
 
         times_contour, idx_start = get_ts_contour(freqs, times[0], timestamps_recording, options)
         print 'contour len: {}'.format(times[-1] - times[0])
-        vv_array = extract_vocal_var(fftgram, idx_start, freqs, to_mfcc_coeff,    options)                
+        vv_array = extract_vocal_var(fftgram, idx_start, freqs, Parameters.dim_timbre,    options)                
         
 #         save_harmonics(times, hfreqs, test_track)
         # plot spectrogram per contour
-        pyplot.imshow(vv_array)
-        pyplot.show()
-        
+#         pyplot.imshow(vv_array)
+#         pyplot.show()
+        return contour_data_frame, vv_array
         
 
 
@@ -112,8 +110,8 @@ def writeCsv(fileURI, list_, withListOfRows=1):
 
 if __name__ == '__main__':
     
-    
-    test_compute_harmonic_ampl_2(sys.argv)
+    args, options = parsing.parseOptions(sys.argv)
+    test_compute_harmonic_ampl_2(options)
     
 #     test_vocal_variance(sys.argv)
     

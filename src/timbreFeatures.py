@@ -6,7 +6,9 @@ Created on Aug 26, 2016
 
 import numpy as np
 from HarmonicSummationSF import calculateSpectrum
-# from essentia.standard import HarmonicModelAnal
+from Parameters import Parameters
+if Parameters.extract_timbre:
+    from essentia.standard import HarmonicModelAnal
 from essentia.standard import *
 import essentia.streaming as es
 import sys
@@ -16,6 +18,12 @@ import numpy
 from vocalVariance import extractMFCCs, compute_var_mfccs
 import traceback
 from matplotlib import pyplot
+import csv
+
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../smstool/software/models/'))
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../smstool/workspace/'))
+
+from smstools.workspace.harmonicModel_function import resynthesize
 
 
 
@@ -34,18 +42,48 @@ def extract_vocal_var(fftgram, idx_start, contour_f0s,  NtimbreFeat,    options)
     
     hfreqs, magns, phases = compute_harmonic_magnitudes(contour_f0s, fftgram, idx_start, options)
     audio_contour, spectogram_contour = harmonic_magnitudes_to_audio(hfreqs, magns, phases, options)
-#     awrite = MonoWriter (filename = 'test.', sampleRate = 44100);
     
     mfccs_array = extractMFCCs(audio_contour)
     vv_array = compute_var_mfccs(mfccs_array,  NtimbreFeat, options)
 
-    return vv_array
+    return vv_array, audio_contour
 
+
+
+def contour_to_audio(contours_bins_SAL, contours_start_times_SAL, fftgram, times_recording, options):
+    ''' 
+    resynthesize contours to audio
+    for listening to or extrawcting features externally
+    '''
+    NContours = len(contours_bins_SAL)
+    
+    ### convert cent bins to herz
+    contours_f0 = []
+    a = options.stepNotes / 1200.0
+    for  curr_contour in contours_bins_SAL: # convert from cent bins to f0
+            contour_f0 = options.minF0 * np.power(2, np.array(curr_contour) * a)
+            contours_f0.append(contour_f0)
+            
+            
+    for i in range(NContours):
+            times_contour, idx_start = get_ts_contour(contours_f0[i], contours_start_times_SAL[i], times_recording, options)
+
+            contour_URI = options.contours_output_path + options.track + '_' + str(i)
+            hfreqs, magns, phases = compute_harmonic_magnitudes(contours_f0[i], fftgram, idx_start, options)
+#                 audio_contour, spectogram_contour = harmonic_magnitudes_to_audio(hfreqs, magns, phases, options)
+ 
+ 
+            resynthesize(hfreqs, magns, phases, 44100, 128, contour_URI  + '.wav')
+            
+            
 
 def compute_timbre_features(contours_bins_SAL, contours_start_times_SAL, fftgram, times_recording, options):
+    '''
+    compute timbre features for all contours
     
+    return: numpy array of timbral features 
+    '''
     NContours = len(contours_bins_SAL)
-    NtimbreFeat = 5
     
     contours_f0 = []
     a = options.stepNotes / 1200.0
@@ -53,24 +91,37 @@ def compute_timbre_features(contours_bins_SAL, contours_start_times_SAL, fftgram
             contour_f0 = options.minF0 * np.power(2, np.array(curr_contour) * a)
             contours_f0.append(contour_f0)
     
-    contourTimbre =  np.zeros([NContours, NtimbreFeat]) # compute timbral features
+    contourTimbre =  np.zeros([NContours, Parameters.dim_timbre]) # compute timbral features
     for i in range(NContours):
             lcontour = len(contours_f0[i])
             if lcontour > 0:
 #                 print 'working on contour {}...'.format(i)
                 
                 times_contour, idx_start = get_ts_contour(contours_f0[i], contours_start_times_SAL[i], times_recording, options)
+             
                 
-                vv_array = extract_vocal_var(fftgram, idx_start, contours_f0[i],  NtimbreFeat,   options)
-                
+                contour_URI = os.path.join(options.contours_output_path, Parameters.features_MATLAB_URI, options.track + '_' + str(i)) 
+
+                if Parameters.read_features_from_MATLAB:
+                # load SVD-lenher extracted
+                    timbre_feature = np.empty((0,Parameters.dim_timbre))
+                    with open(contour_URI + '.arff') as csvfile:
+                        spamreader = csv.reader(csvfile)
+                        for row in spamreader:
+                            
+                            curr_feature = np.array(row).astype(np.float).reshape(1,len(row))
+                            timbre_feature = np.append(timbre_feature, curr_feature, axis=0)
+                else:
+                    timbre_feature, audio = extract_vocal_var(fftgram, idx_start, contours_f0[i],  Parameters.dim_timbre,   options)
                 # take median over features
-                median_timbre_features = numpy.median(vv_array, axis = 0)
                 
-                contourTimbre[i,:] = median_timbre_features.T
+                
+                median_timbre_features = numpy.median(timbre_feature, axis = 0)
+                contourTimbre[i,:] = median_timbre_features
     
-    if (options.plotting):
-        import pylab as plt
-        plt.imshow(contourTimbre)
+#     if (options.plotting):
+#         import pylab as plt
+#         plt.imshow(contourTimbre)
 
     return contourTimbre
 
@@ -100,6 +151,8 @@ def compute_harmonic_magnitudes(contour_f0s,  fftgram, idx_start, options):
 
     for i, contour_f0 in enumerate(contour_f0s):
         
+        if idx_start + i > len(fftgram) - 1:
+                    sys.exit('idx start is {} while len ffmtgram is {}'.format(idx_start, len(fftgram) ) )
         fft = fftgram[idx_start + i]
         # convert to freq : 
         hfreq, magn, phase = run_harm_model_anal(fft, contour_f0)
@@ -135,6 +188,8 @@ def get_ts_contour(contour_f0s, contour_start_time, times, options):
     times_contour =   contour_start_time +  numpy.arange(len_contour) *  float(options.hopsizeInSamples) / options.Fs
     return times_contour, idx_start   
 
+
+
 def harmonic_magnitudes_to_audio (hfreqs, magns, phases,  options):
     '''
     Compute for each frame harm amplitude
@@ -156,9 +211,9 @@ def harmonic_magnitudes_to_audio (hfreqs, magns, phases,  options):
     
     pool = Pool()
     
-    run_sine_model_synth = SineModelSynth( hopSize=options.hopsizeInSamples, sampleRate = options.Fs) 
+    run_sine_model_synth = SineModelSynth( hopSize=512, sampleRate = options.Fs) 
     run_ifft = IFFT(size = options.windowsizeInSamples);
-    run_overl = OverlapAdd (frameSize = options.windowsizeInSamples, hopSize = options.hopsizeInSamples);
+    run_overl = OverlapAdd (frameSize = options.windowsizeInSamples, hopSize = 512, gain = 1./options.windowsizeInSamples );
     out_audio_contour = np.array(0)
     
     for hfreq, magn, phase in zip(hfreqs, magns, phases):

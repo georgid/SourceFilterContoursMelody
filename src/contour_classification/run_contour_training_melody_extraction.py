@@ -22,6 +22,7 @@ from Parameters import Parameters
 from main_contour_extraction import load_labeled_contours
 from src.contour_classification.contour_utils import plot_decoded_melody,\
     plot_contours_interactive
+from src.main_contour_extraction import label_contours_and_store
 
 
 
@@ -32,7 +33,12 @@ from scipy.stats import boxcox
 from contour_utils  import getFeatureInfo
 
 
+
+
 def train_and_classify(mdb_files, train, test, dset_contour_dict, dset_annot_dict):
+            '''
+            labeling should be already done
+            '''
             random.shuffle(train)
             n_train = len(train) - (len(test)/2)
             train_tracks = mdb_files[train[:n_train]]
@@ -49,10 +55,9 @@ def train_and_classify(mdb_files, train, test, dset_contour_dict, dset_annot_dic
     
             reload(eu)
             olap_stats, zero_olap_stats = eu.olap_stats(train_contour_dict)
-            OLAP_THRESH = 0.5
-            train_contour_dict, valid_contour_dict, test_contour_dict = \
-                eu.label_all_contours(train_contour_dict, valid_contour_dict, \
-                                      test_contour_dict, olap_thresh=OLAP_THRESH)
+            print 'overlapped stats on train data...'
+            print olap_stats
+
             len(train_contour_dict)
     
             reload(cc)
@@ -106,7 +111,7 @@ def train_and_classify(mdb_files, train, test, dset_contour_dict, dset_annot_dic
                 mel_output_dict[key] = gm.melody_from_clf(test_contour_dict[key], prob_thresh=best_thresh)
 
     #             mel_output_dict[key] = contours_to_vocal(test_contour_dict[key], prob_thresh=best_thresh)
-            return mel_output_dict, test_annot_dict     
+            return mel_output_dict, test_annot_dict, clf, feats     
 
 
 
@@ -143,25 +148,13 @@ scores_nm = []
 # with open('melody_trackids_orch.json', 'r') as fhandle:
 #     track_list = json.load(fhandle)
 # 
-# if DB == "MedleyDB":
-#     if subset == 'all':
-#         with open('melody_trackids.json', 'r') as fhandle:
-#             track_list = json.load(fhandle)
-#             track_list = track_list['tracks']
-#     else:
-#         with open("v_i_splits.json", 'r') as fhandle:
-#             vi_dict = json.load(fhandle)
-#         if subset == 'i':
-#             track_list = [k for k in vi_dict.keys() if vi_dict[k] == "i"]
-#         if subset == 'v':
-#             track_list = [k for k in vi_dict.keys() if vi_dict[k] == "v"]
+
 
     #  for iKala
-if Parameters.datasetIKala:
-        tracks  = Parameters.tracks
+tracks  = Parameters.tracks
 
-contours_path = Parameters.iKala_annotation_URI
-dset_contour_dict, dset_annot_dict = load_labeled_contours(tracks, contours_path)
+    
+dset_contour_dict, dset_annot_dict = load_labeled_contours(tracks, Parameters.contour_URI)
 
 mdb_files, splitter = eu.create_splits(test_size=0.25)
 
@@ -170,12 +163,18 @@ mdb_files, splitter = eu.create_splits(test_size=0.25)
 # repeat split into train and test 1 times
 for i in range(1):
         for train, test in splitter: # each splitting is repeated 5 times. see ShuffleLabel 
-            mel_output_dict, test_annot_dict = train_and_classify(mdb_files, train, test, dset_contour_dict, dset_annot_dict)
+            mel_output_dict, test_annot_dict, clf, feats = train_and_classify(mdb_files, train, test, dset_contour_dict, dset_annot_dict)
 #             for track in mel_output_dict.keys():
 #                 plot_contours_interactive(dset_contour_dict[track], dset_annot_dict[track], track)
 #                 plot_decoded_melody( mel_output_dict[track] )
             eval(mel_output_dict, test_annot_dict, scores )
+            
+            # GEORGID commented this. as it is not used
+            np.argsort(clf.feature_importances_)
+            np.sum(clf.feature_importances_)
+            feats_sorted = [feats[k] for k in np.argsort(clf.feature_importances_)]
 
+            print feats_sorted
 
 
  
@@ -197,10 +196,6 @@ with open(picklefile, 'wb') as handle:
 print allscores.describe()
  
  
-# GEORGID commented this. as it is not used
-# np.argsort(clf.feature_importances_)
-# np.sum(clf.feature_importances_)
-# [feats[k] for k in np.argsort(clf.feature_importances_)]
 
 
 #

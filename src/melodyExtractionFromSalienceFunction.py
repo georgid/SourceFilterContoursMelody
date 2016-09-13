@@ -87,6 +87,25 @@ def MEFromSFFile(fn, outputfile, wavFile, options):
     savetxt(outputfile, column_stack((times.T, pitch.T)), fmt='%-7.5f', delimiter=",")
 
 
+
+def saveContours(options, stepNotes, contours_bins_SAL, contours_saliences_SAL, contours_start_times_SAL, contourTimbre):
+    NContours = len(contours_bins_SAL)
+    if (NContours > 0):
+        # If contour need to be saved for pitch contour classification, we compute the the contour data
+        if options.saveContours:
+            try:
+                extraFeatures = createDataFrameWithExtraFeatures(contours_start_times_SAL, contours_bins_SAL, contourTimbre, contourTonalInfo=None)
+                contour_data = ce.compute_contour_data(contours_bins_SAL, contours_saliences_SAL, 
+                    contours_start_times_SAL, stepNotes, options.minF0, 
+                    options.hopsize, extra_features=extraFeatures)
+                picklefile = options.pitch_output_file + Parameters.CONTOUR_EXTENSION
+                from pickle import dump
+                with open(picklefile, 'wb') as handle:
+                    dump(contour_data, handle)
+                print 'stored contours as ' + picklefile
+            except:
+                print "Error computing contour data"
+
 def MEFromSF(times, SF, fftgram, options):
     """ Computes Melody extractino from a Salience function
         Parameters
@@ -168,55 +187,20 @@ def MEFromSF(times, SF, fftgram, options):
     print 'NContours %d' % NContours
     pitch = np.zeros(len(times))
     
-#     print contours_bins_SAL[0]
-#     import json
-#     with open('../test/contour_bins.txt', 'w') as outfile:
-#         contour_bins_test = contours_bins_SAL[0]
-#         contour_bins_test.insert(0, contours_start_times_SAL[0])
-#         json.dump(contour_bins_test, outfile)
+
     contourTimbre = None 
-    if Parameters.useTimbre:
+    if Parameters.extract_timbre:
         try:
              
             contourTimbre = compute_timbre_features(contours_bins_SAL, contours_start_times_SAL, fftgram, times, options)
         except:
             print "Error computing timbre features"
-
+    else:
+        print "not extracting timbre..."
     
     options.saveContours = True
 
-    if (NContours > 0):
-
-        if options.extractionMethod == 'PCS':
-            # Extract melody from contours using Pitch Contour Selection
-            allpitch, confidence = run_pitch_contours_melody(contours_bins_SAL,
-                                                             contours_saliences_SAL,
-                                                             contours_start_times_SAL,
-                                                             durationSAL)
-
-            # We convert the allpitch (always positive) to a sequence of positive
-            # and negative pitches, depending on the confidence, which is a measure
-            # of the voicing. We add 0 to avoid negative zeros (-0.0)
-            pitch = allpitch * (-1 + 2 * (confidence > 0)) + 0
-            L = min(len(pitch), len(times))
-            pitch = pitch[0:L]
-            times = times[0:L]
-            
-        # If contour need to be saved for pitch contour classification, we compute the the contour data
-        if options.saveContours:
-            
-            try:
-                extraFeatures = createDataFrameWithExtraFeatures(contours_start_times_SAL, contours_bins_SAL, contourTimbre, contourTonalInfo= None)
-                contour_data = ce.compute_contour_data(contours_bins_SAL, contours_saliences_SAL,
-                                                       contours_start_times_SAL, stepNotes, options.minF0,
-                                                       options.hopsize, extra_features=extraFeatures)
-                picklefile = options.pitch_output_file + Parameters.CONTOUR_EXTENSION
-                from pickle import dump
-                with open(picklefile, 'wb') as handle:
-                    dump(contour_data, handle)
-                print 'stored contours as ' + picklefile 
-            except:
-                print "Error computing contour data"
+    saveContours(options, stepNotes, contours_bins_SAL, contours_saliences_SAL, contours_start_times_SAL, contourTimbre)
     return times, pitch
 
 

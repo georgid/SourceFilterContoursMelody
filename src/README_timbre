@@ -1,0 +1,38 @@
+
+extract contours: 
+src.main_contour_extraction.create_contours_and_store
+
+label them according annotations: 
+src.main_contour_extraction.load_labeled_contours
+
+
+in run_contour_training_melody_extraction
+train and classify: 
+src.contour_classification.run_contour_training_melody_extraction.train_and_classify
+src.contour_classification.run_contour_training_melody_extraction.eval
+
+
+
+
+-------------
+plot interactively contorus:  
+see test_feature_weights:
+plot_contours_interactive(contour_data, dset_annot_dict[track], track)
+
+and plot the decoded melody 
+plot_decoded_melody
+
+
+test_timbre_features- extract features with already extracted contour
+
+
+compute_and_plot_harmoncis
+
+
+------------------------
+NOTES: 11.09. 
+Parameters.features_MATLAB - used in src.timbreFeatures.compute_timbre_features to load from matlab or calculate
+Parameters.onlyTimbre - used in 	src.contour_classification.contour_utils.getFeatureInfo
+
+
+only one extension: pitch.ctr with timbre features as well

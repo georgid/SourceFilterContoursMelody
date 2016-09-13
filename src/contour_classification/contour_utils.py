@@ -507,13 +507,23 @@ def join_contours(contours_list):
     return all_contours
 
 def getFeatureInfo(contourDF):
-    if Parameters.useTimbre:
-        if 'first_time' in contourDF.columns:
-            idxEndFeatures = contourDF.columns.get_loc('first_time')-1
-        else:
-            sys.exit('contour DataFrame does not have field first_time')
-    else:
+    if Parameters.use_SAL_for_classification:
+        if Parameters.useTimbre_for_classification: # last timbre feature is before first_time
+            if 'first_time' in contourDF.columns:
+                idxEndFeatures = contourDF.columns.get_loc('first_time')-1
+            else:
+                sys.exit('contour DataFrame does not have field first_time')
+        else: # only SAL features
             idxEndFeatures = 11     # From the original implementation, 12 is the last feature
+    
+    elif Parameters.useTimbre_for_classification: #  only timbre
+        if 'timbre0' in contourDF.columns:
+        
+            idxStartFeatures = contourDF.columns.get_loc('timbre0')
+        else:
+            sys.exit('contour DataFrame does not have field timbre0')
+    else:
+        sys.exit('no features for clasification.  at least one of  use_SAL_for_classification and useTimbre_for_classification should be set ')
     
     if 'duration' in contourDF.columns:
         idxStartFeatures = contourDF.columns.get_loc('duration')

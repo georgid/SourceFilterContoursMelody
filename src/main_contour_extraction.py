@@ -10,6 +10,13 @@ from HarmonicSummationSF import calculateSpectrum, calculateSF
 import sys
 import pandas as pd
 from Parameters import Parameters
+import numpy as np
+from contour_classification.experiment_utils import get_data_files
+from contour_classification.contour_utils import contours_from_contour_data
+from timbreFeatures import compute_timbre_features
+from melodyExtractionFromSalienceFunction import saveContours
+import parsing
+from timbreFeatures import contour_to_audio
 
 # mel_type = 1
 #     #  for iKala
@@ -20,15 +27,19 @@ from Parameters import Parameters
 
 
 
-def create_contours_and_store(tracks, contours_path):
+def create_contours_and_store(tracks, contours_output_path):
     import parsing
     
     (args,options) = parsing.parseOptions(sys.argv)
     
     options.pitchContinuity = 27.56
     options.peakDistributionThreshold = 1.3
+#     options.peakDistributionThreshold = 0.9
     options.peakFrameThreshold = 0.7
+#     options.peakFrameThreshold = 0.9
     options.timeContinuity = 100
+
+#     options.timeContinuity = 50     # medley DB
     options.minDuration = 100
     options.voicingTolerance = 1
     options.useVibrato = False
@@ -43,7 +54,7 @@ def create_contours_and_store(tracks, contours_path):
            
     for fileName in tracks:
 
-        options.pitch_output_file    = contours_path + fileName
+        options.pitch_output_file    = contours_output_path + fileName
         wavfile_  = Parameters.iKala_wav_URI + fileName + '.wav'
         spectogram, fftgram = calculateSpectrum(wavfile_, options.hopsizeInSamples)
         timesHSSF, HSSF = calculateSF(spectogram,  options.hopsizeInSamples)
@@ -51,6 +62,44 @@ def create_contours_and_store(tracks, contours_path):
         print("Extracting melody from salience function ")
         times, pitch = MEFromSF(timesHSSF, HSSF, fftgram, options)
         
+
+def load_contour_and_extractTimbre_and_save(tracks, contours_output_path, options):
+    
+    '''
+    toAudio - if True store resynthesized audio for each contour and return without contour extraction
+    else: extract Timbre and save
+    '''
+    for track in tracks:
+        _, fftgram = calculateSpectrum(Parameters.iKala_wav_URI + track + '.wav', options.hopsizeInSamples)
+        timestamps_recording = np.arange(len(fftgram)) * float(options.hopsizeInSamples) / options.Fs
+            
+        contour_data_frame, adat = get_data_files(track, meltype=1)
+        contours_start_times_df, contours_bins_df, contours_saliences_SAL_df = contours_from_contour_data(contour_data_frame)
+        
+        contours_bins_SAL = []
+        contours_saliences_SAL = []
+        for (freqs, saliences) in zip(contours_bins_df.iterrows(), contours_saliences_SAL_df.iterrows()) :
+            freqs = freqs[1].values
+            freqs = freqs[~np.isnan(freqs)] # remove trailing nans
+            contours_bins_SAL.append(freqs)
+            
+            saliences = saliences[1].values
+            saliences = saliences[~np.isnan(saliences)] # remove trailing nans
+            contours_saliences_SAL.append(saliences)
+            
+        contours_start_times_SAL = contours_start_times_df.values[:,0]
+        options.saveContours = True
+        options.track = track
+        
+        options.pitch_output_file    = os.path.join(contours_output_path, track)
+        
+        if Parameters.extract_timbre: 
+            contourTimbre = compute_timbre_features(contours_bins_SAL, contours_start_times_SAL, fftgram, timestamps_recording, options)
+            saveContours(options, options.stepNotes, contours_bins_SAL, contours_saliences_SAL, contours_start_times_SAL, contourTimbre)
+        if Parameters.to_audio: # simply resynth to audio
+            options.contours_output_path = os.path.join(contours_output_path,  Parameters.features_MATLAB_URI )
+            contour_to_audio(contours_bins_SAL, contours_start_times_SAL, fftgram, timestamps_recording, options)
+
 
 def label_contours_and_store(output_contours_path, tracks):
     '''
@@ -65,10 +114,10 @@ def label_contours_and_store(output_contours_path, tracks):
     dset_contour_dict, dset_annot_dict = eu.compute_all_overlaps(tracks, meltype=mel_type)
     
     
-    OLAP_THRESH = 0.5    
+      
     dset_contour_dict_labeled, _, _ = \
             eu.label_all_contours(dset_contour_dict, dset_contour_dict, \
-                                  dset_contour_dict, olap_thresh=OLAP_THRESH)
+                                  dset_contour_dict, olap_thresh=Parameters.OLAP_THRESH)
     
 #     write to json 
     for key in dset_contour_dict_labeled:
@@ -81,32 +130,39 @@ def label_contours_and_store(output_contours_path, tracks):
     return dset_contour_dict_labeled, dset_annot_dict
 
 
-def load_labeled_contours(tracks, contours_path):
+def load_labeled_contours(tracks, contours_output_path):
     # import labeled contours
     dset_annot_dict = {}
     dset_contour_dict = {}
     for test_track in tracks:
-        filename = os.path.join(contours_path, test_track + '.ctr.anno')
+        filename = os.path.join(contours_output_path, test_track + '.ctr.anno')
         dset_annot_dict[test_track] = pd.read_csv(filename, sep='\t', encoding='utf-8')
-        filename = os.path.join(contours_path, test_track + '.ctr.ovrl')
+        filename = os.path.join(contours_output_path, test_track + '.ctr.ovrl')
         dset_contour_dict[test_track] = pd.read_csv(filename, sep='\t', encoding='utf-8')
     
     return dset_contour_dict, dset_annot_dict
 
 if __name__ == '__main__':
     
-    if len(sys.argv) != 2:
-        sys.exit('usage: {} <path-to-ikala>'.format(sys.argv[0]))
+    if len(sys.argv) != 4:
+        sys.exit('usage: {} <path-to-ikala> <create_contours=1> <extractTimbre>'.format(sys.argv[0]))
     path_ = sys.argv[1]
     Parameters.iKala_URI = path_
 
-    contours_path = Parameters.iKala_annotation_URI
-#     tracks = [Parameters.test_track]
-    tracks = Parameters.tracks
-    create_contours_and_store(tracks, contours_path)
+    args, options = parsing.parseOptions(sys.argv)
+    whichStep_ = int(sys.argv[2]) # 
+    Parameters.extract_timbre  = int(sys.argv[3])
     
-    dset_contour_dict_labeled, dset_annot_dict = label_contours_and_store(contours_path, tracks)
-
+    
+#     Parameters.contour_URI += '/vv_hopS-0.5/'
+    if whichStep_ == 1:
+        create_contours_and_store(Parameters.tracks, Parameters.contour_URI)
+    
+    elif whichStep_ == 2:
+       
+        load_contour_and_extractTimbre_and_save(Parameters.tracks, Parameters.contour_URI, options)
+    
+        dset_contour_dict_labeled, dset_annot_dict = label_contours_and_store(Parameters.contour_URI, Parameters.tracks)
 
     
 
