@@ -75,8 +75,8 @@ def contour_to_audio(contours_bins_SAL, contours_start_times_SAL, fftgram, times
             hfreqs, magns, phases = compute_harmonic_magnitudes(contours_f0[i], fftgram, idx_start, options)
 #                 audio_contour, spectogram_contour = harmonic_magnitudes_to_audio(hfreqs, magns, phases, options)
  
- 
-            resynthesize(hfreqs, magns, phases, 44100, 128, contour_URI  + '.wav')
+            if not os.path.isfile(contour_URI  + '.wav'):
+                resynthesize(hfreqs, magns, phases, 44100, 128, contour_URI  + '.wav')
             
             
 
@@ -103,11 +103,11 @@ def compute_timbre_features(contours_bins_SAL, contours_start_times_SAL, fftgram
                 times_contour, idx_start = get_ts_contour(contours_f0[i], contours_start_times_SAL[i], times_recording, options)
              
                 
-                contour_URI = os.path.join(options.contours_output_path, Parameters.features_MATLAB_URI, options.track + '_' + str(i)) 
 
                 if Parameters.read_features_from_MATLAB:
                 # load SVD-lenher extracted
-                    timbre_feature = np.empty((0,Parameters.dim_timbre))
+                    contour_URI = os.path.join(options.contours_output_path, Parameters.features_MATLAB_URI, options.track + '_' + str(i)) 
+                    timbre_feature = np.empty((0, Parameters.dim_timbre))
                     with open(contour_URI + '.arff') as csvfile:
                         spamreader = csv.reader(csvfile)
                         for row in spamreader:

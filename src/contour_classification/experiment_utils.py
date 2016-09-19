@@ -30,7 +30,7 @@ def create_splits(test_size=0.15):
 
     #
     # EDIT: For Orchset
-    index = json.load(open('orch_groups.json'))
+#     index = json.load(open('orch_groups.json'))
 
     mdb_files = []
     keys = []
@@ -62,7 +62,7 @@ def create_splits(test_size=0.15):
     return mdb_files, splitter
 
 
-def get_data_files(test_track, meltype=1):
+def get_data_files(test_track, normalize=False, meltype=1):
     """ Load all necessary data for a given test_track and melody type.
 
     Parameters
@@ -170,12 +170,12 @@ def get_data_files(test_track, meltype=1):
     
 
     
-    cdat = cc.load_contour_data(contour_fpath, normalize=True)
+    cdat = cc.load_contour_data(contour_fpath, normalize=normalize)
     adat = cc.load_annotation(annot_fpath)
     return cdat, adat
 
 
-def  compute_all_overlaps(track_list, meltype):
+def  compute_all_overlaps(track_list, normalize, meltype):
     """ Compute each contour's overlap with annotation.
 
     Parameters
@@ -201,7 +201,7 @@ def  compute_all_overlaps(track_list, meltype):
     print msg + ' '*num_spaces + '|'
 
     for track in track_list:
-        cdat, adat = get_data_files(track, meltype=meltype)
+        cdat, adat = get_data_files(track, normalize=normalize, meltype=meltype)
 #         plot_contours(cdat, adat)
         dset_annot_dict[track] = adat.copy()
         dset_contour_dict[track] = cc.compute_overlap(cdat, adat)

@@ -40,7 +40,7 @@ def create_contours_and_store(tracks, contours_output_path):
     options.timeContinuity = 100
 
 #     options.timeContinuity = 50     # medley DB
-    options.minDuration = 100
+    options.minDuration = 200
     options.voicingTolerance = 1
     options.useVibrato = False
     
@@ -95,14 +95,15 @@ def load_contour_and_extractTimbre_and_save(tracks, contours_output_path, option
         options.pitch_output_file    = os.path.join(contours_output_path, track)
         
         if Parameters.extract_timbre: 
+            options.contours_output_path = contours_output_path
             contourTimbre = compute_timbre_features(contours_bins_SAL, contours_start_times_SAL, fftgram, timestamps_recording, options)
             saveContours(options, options.stepNotes, contours_bins_SAL, contours_saliences_SAL, contours_start_times_SAL, contourTimbre)
         if Parameters.to_audio: # simply resynth to audio
-            options.contours_output_path = os.path.join(contours_output_path,  Parameters.features_MATLAB_URI )
+            options.contours_output_path = contours_output_path
             contour_to_audio(contours_bins_SAL, contours_start_times_SAL, fftgram, timestamps_recording, options)
 
 
-def label_contours_and_store(output_contours_path, tracks):
+def label_contours_and_store(output_contours_path, tracks, normalize):
     '''
     overlap all contours with ground truth and serialize to pandas csv
     '''
@@ -112,7 +113,7 @@ def label_contours_and_store(output_contours_path, tracks):
     # mdb_files, splitter = eu.create_splits(test_size=0.15)
     import contour_classification.experiment_utils as eu
     ########################### 3.1 Contour labeling
-    dset_contour_dict, dset_annot_dict = eu.compute_all_overlaps(tracks, meltype=mel_type)
+    dset_contour_dict, dset_annot_dict = eu.compute_all_overlaps(tracks, normalize=normalize, meltype=mel_type)
     
     
       
@@ -120,53 +121,61 @@ def label_contours_and_store(output_contours_path, tracks):
             eu.label_all_contours(dset_contour_dict, dset_contour_dict, \
                                   dset_contour_dict, olap_thresh=Parameters.OLAP_THRESH)
     
-#     write to json 
-    for key in dset_contour_dict_labeled:
-        filename = os.path.join(output_contours_path, key + '.ctr.ovrl')
-        dset_contour_dict_labeled[key].to_csv(filename, sep='\t', encoding='utf-8',  index=False)
-    for key in dset_annot_dict:
-        filename = os.path.join(output_contours_path, key + '.ctr.anno')
-        dset_annot_dict[key].to_csv(filename, sep='\t', encoding='utf-8',  index=False)
+    for track in dset_contour_dict_labeled.keys():
+        contour_data =  dset_contour_dict_labeled[track]
+        picklefile = os.path.join(output_contours_path, track + Parameters.CONTOUR_EXTENSION)
+        from pickle import dump
+        with open(picklefile, 'wb') as handle:
+            dump(contour_data, handle)
+            print 'stored contours as ' + picklefile
     
+    print 'labeling finished...'
     return dset_contour_dict_labeled, dset_annot_dict
 
 
-def load_labeled_contours(tracks, contours_output_path):
-    # import labeled contours
-    dset_annot_dict = {}
-    dset_contour_dict = {}
-    for test_track in tracks:
-        filename = os.path.join(contours_output_path, test_track + '.ctr.anno')
-        dset_annot_dict[test_track] = pd.read_csv(filename, sep='\t', encoding='utf-8')
-        filename = os.path.join(contours_output_path, test_track + '.ctr.ovrl')
-        dset_contour_dict[test_track] = pd.read_csv(filename, sep='\t', encoding='utf-8')
-    
-    return dset_contour_dict, dset_annot_dict
+# def load_labeled_contours(tracks, contours_output_path):
+#     # import labeled contours
+#     dset_annot_dict = {}
+#     dset_contour_dict = {}
+#     for test_track in tracks:
+#         filename = os.path.join(contours_output_path, test_track + '.ctr.anno')
+#         dset_annot_dict[test_track] = pd.read_csv(filename, sep='\t', encoding='utf-8')
+#         filename = os.path.join(contours_output_path, test_track + '.ctr.ovrl')
+#         dset_contour_dict[test_track] = pd.read_csv(filename, sep='\t', encoding='utf-8')
+#     
+#     return dset_contour_dict, dset_annot_dict
 
 if __name__ == '__main__':
     
-    if len(sys.argv) != 4:
-        sys.exit('usage: {} <path-to-ikala> <create_contours=1> <extractTimbre>'.format(sys.argv[0]))
+    if len(sys.argv) != 6:
+        sys.exit('usage: {} <path-to-ikala> <create_contours=1, extracttimbre=2> <extractTimbre> <export-contours-to-audio> <path-features>'.format(sys.argv[0]))
     path_ = sys.argv[1]
     Parameters.iKala_URI = path_
-
-    args, options = parsing.parseOptions(sys.argv)
+    Parameters.set_paths()  
     whichStep_ = int(sys.argv[2]) # 
+    
     Parameters.extract_timbre  = int(sys.argv[3])
+    Parameters.to_audio = int(sys.argv[4])
+    featrues_path = sys.argv[5]
+    Parameters.contour_URI = Parameters.iKala_URI + featrues_path
+    print Parameters.contour_URI
+    args, options = parsing.parseOptions(sys.argv)
     
-    
+#     tracks = ['21057_chorus']
+    tracks = Parameters.tracks
 #     Parameters.contour_URI += '/vv_hopS-0.5/'
     if whichStep_ == 1:
         if not os.path.exists(Parameters.contour_URI):
             os.mkdir(Parameters.contour_URI)
             
-        create_contours_and_store(Parameters.tracks, Parameters.contour_URI)
+        create_contours_and_store(tracks, Parameters.contour_URI)
     
     elif whichStep_ == 2:
        
-        load_contour_and_extractTimbre_and_save(Parameters.tracks, Parameters.contour_URI, options)
+
+        load_contour_and_extractTimbre_and_save(tracks, Parameters.contour_URI, options)
     
-        dset_contour_dict_labeled, dset_annot_dict = label_contours_and_store(Parameters.contour_URI, Parameters.tracks)
+    dset_contour_dict_labeled, dset_annot_dict = label_contours_and_store(Parameters.contour_URI, tracks, normalize=False)
 
     
 

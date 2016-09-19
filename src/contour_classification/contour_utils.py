@@ -4,7 +4,8 @@ import pandas as pd
 import numpy as np
 import mir_eval
 import sys
-sys.path.append('..')
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from timbreFeatures import get_ts_contour
 from Parameters import Parameters
 from timbreFeatures import compute_harmonic_magnitudes
@@ -64,10 +65,10 @@ def load_contour_data(fpath, normalize=True):
     contour_data['duration'] = np.fmax(contour_data['duration'].values,0.001)
 
     contour_data.num_end_cols = 0
-    contour_data['overlap'] = -1  # overlaps are unset
-    contour_data['labels'] = -1  # all labels are unset
-    contour_data['melodiness'] = ""
-    contour_data['mel prob'] = -1
+#     contour_data['overlap'] = -1  # overlaps are unset
+#     contour_data['labels'] = -1  # all labels are unset
+#     contour_data['melodiness'] = ""
+#     contour_data['mel prob'] = -1
     contour_data.num_end_cols = 4
 
     if normalize:

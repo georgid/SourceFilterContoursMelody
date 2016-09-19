@@ -20,8 +20,8 @@ except:
     print 'seaborn not available'
 import sys
 from Parameters import Parameters
-from main_contour_extraction import load_labeled_contours
-from src.main_contour_extraction import label_contours_and_store
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from main_contour_extraction import label_contours_and_store
 
 
 
@@ -53,9 +53,9 @@ def train_and_classify(mdb_files, train, test, dset_contour_dict, dset_annot_dic
             test_annot_dict = {k: dset_annot_dict[k] for k in test_tracks}
     
             reload(eu)
-            olap_stats, zero_olap_stats = eu.olap_stats(train_contour_dict)
+            partial_olap_stats, zero_olap_stats = eu.olap_stats(train_contour_dict)
             print 'overlapped stats on train data...'
-            print olap_stats
+            print partial_olap_stats
 
             len(train_contour_dict)
     
@@ -130,93 +130,102 @@ def eval(mel_output_dict, test_annot_dict, scores):
     overall_scores.describe()
 
 
-# plt.ion()
-
-
-mel_type=1
-
-reload(eu)
-
-scores = []
-scores_nm = []
-
-# EDIT: For MedleyDB
-#with open('melody_trackids.json', 'r') as fhandle:
-#    track_list = json.load(fhandle)
-# For Orchset
-# with open('melody_trackids_orch.json', 'r') as fhandle:
-#     track_list = json.load(fhandle)
-# 
-
-
-    #  for iKala
-tracks  = Parameters.tracks
-
+if __name__ == '__main__':
     
-dset_contour_dict, dset_annot_dict = load_labeled_contours(tracks, Parameters.contour_URI)
-
-mdb_files, splitter = eu.create_splits(test_size=0.25)
-
-
-
-# repeat split into train and test 1 times
-for i in range(1):
-        for train, test in splitter: # each splitting is repeated 5 times. see ShuffleLabel 
-            mel_output_dict, test_annot_dict, clf, feats = train_and_classify(mdb_files, train, test, dset_contour_dict, dset_annot_dict)
-#             for track in mel_output_dict.keys():
-#                 plot_contours_interactive(dset_contour_dict[track], dset_annot_dict[track], track)
-#                 plot_decoded_melody( mel_output_dict[track] )
-            eval(mel_output_dict, test_annot_dict, scores )
-            
-            # GEORGID commented this. as it is not used
-            np.argsort(clf.feature_importances_)
-            np.sum(clf.feature_importances_)
-            feats_sorted = [feats[k] for k in np.argsort(clf.feature_importances_)]
-
-            print feats_sorted
-
-
- 
-print "End"
-
-
-allscores = scores[0]
-for i in range(1,len(scores),1):
-    allscores = allscores.append(scores[i])
-    print i
-    print (len(allscores))
- 
- 
-allscores.to_csv('allscoresNoTonal.csv')
-from pickle import dump
-picklefile = 'allscores'
-with open(picklefile, 'wb') as handle:
-    dump(allscores, handle)
-print allscores.describe()
- 
- 
-
-
-#
-# allscores_nm = scores_nm[0]
-# for i in range(1,len(scores_nm),1):
-#     allscores_nm = allscores_nm.append(scores_nm[i])
-#     print i
-#     print (len(allscores_nm))
-#
-# allscores_nm.describe()
-#
-# from pickle import dump
-# picklefile = 'allscores_nm'
-# with open(picklefile, 'wb') as handle:
-#     dump(allscores_nm, handle)
-#
-#
-#
-#
-# picklefile = 'allscores'
-#
-# from pickle import load
-# with open(picklefile, 'rb') as handle:
-#     b = load(handle)
-
+    
+    if len(sys.argv) != 4:
+        sys.exit('usage: {} <path-to-ikala/path-features> <use_SAL_features_for_training> <use_timbre_features_for_training>'.format(sys.argv[0]))
+    
+    # plt.ion()
+    
+    
+    mel_type=1
+    
+    reload(eu)
+    
+    scores = []
+    scores_nm = []
+    
+    # EDIT: For MedleyDB
+    #with open('melody_trackids.json', 'r') as fhandle:
+    #    track_list = json.load(fhandle)
+    # For Orchset
+    # with open('melody_trackids_orch.json', 'r') as fhandle:
+    #     track_list = json.load(fhandle)
+    # 
+    
+    
+        #  for iKala
+    tracks  = Parameters.tracks
+    Parameters.contour_URI = sys.argv[1]
+    Parameters.use_SAL_for_classification = int(sys.argv[2])
+    Parameters.use_SAL_for_classification = int(sys.argv[3])
+     
+    dset_contour_dict_labeled, dset_annot_dict = label_contours_and_store(Parameters.contour_URI, Parameters.tracks, normalize=True)
+        
+    
+    mdb_files, splitter = eu.create_splits(test_size=0.25)
+    
+    
+    
+    # repeat split into train and test 1 times
+    for i in range(1):
+            for train, test in splitter: # each splitting is repeated 5 times. see ShuffleLabel 
+                mel_output_dict, test_annot_dict, clf, feats = train_and_classify(mdb_files, train, test, dset_contour_dict_labeled, dset_annot_dict)
+    #             for track in mel_output_dict.keys():
+    #                 plot_contours_interactive(dset_contour_dict_labeled[track], dset_annot_dict[track], track)
+    #                 plot_decoded_melody( mel_output_dict[track] )
+                eval(mel_output_dict, test_annot_dict, scores )
+                
+                # GEORGID commented this. as it is not used
+                np.argsort(clf.feature_importances_)
+                np.sum(clf.feature_importances_)
+                feats_sorted = [feats[k] for k in np.argsort(clf.feature_importances_)]
+    
+                print feats_sorted
+    
+    
+     
+    print "End"
+    
+    
+    allscores = scores[0]
+    for i in range(1,len(scores),1):
+        allscores = allscores.append(scores[i])
+        print i
+        print (len(allscores))
+     
+     
+    allscores.to_csv('allscoresNoTonal.csv')
+    from pickle import dump
+    picklefile = 'allscores'
+    with open(picklefile, 'wb') as handle:
+        dump(allscores, handle)
+    print allscores.describe()
+     
+     
+    
+    
+    #
+    # allscores_nm = scores_nm[0]
+    # for i in range(1,len(scores_nm),1):
+    #     allscores_nm = allscores_nm.append(scores_nm[i])
+    #     print i
+    #     print (len(allscores_nm))
+    #
+    # allscores_nm.describe()
+    #
+    # from pickle import dump
+    # picklefile = 'allscores_nm'
+    # with open(picklefile, 'wb') as handle:
+    #     dump(allscores_nm, handle)
+    #
+    #
+    #
+    #
+    # picklefile = 'allscores'
+    #
+    # from pickle import load
+    # with open(picklefile, 'rb') as handle:
+    #     b = load(handle)
+    
