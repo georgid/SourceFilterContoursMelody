@@ -89,6 +89,7 @@ def compute_var_mfccs(mfccs_array, hl_mfcc_coeff, options):
     numFrVar = int(math.floor(varianceWindow / hopSize_block))
     vocal_var_array = np.zeros(mfccs_array.shape)
     
+    
     for i in range(0, num_frames):
         startIdx = max(0,i-numFrVar)
         endIdx = min( num_frames-1, i + numFrVar )

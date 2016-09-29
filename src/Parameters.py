@@ -25,18 +25,28 @@ class   Parameters(object):
     OLAP_THRESH = 0.5 
     
     
-    useTimbre_for_classification = True
+    useMFCC_for_classification = False
+    useVV_for_classification = False
     use_SAL_for_classification = True
-    read_features_from_MATLAB = True # load .arff files per contour extracted with Lehner's code matlab
+    read_features_from_MATLAB = False # load .arff files per contour extracted with Lehner's code matlab
+    use_fluct_for_classification = True
+    
+    if use_fluct_for_classification:
+        dim_timbre = 1
+    
+    if useMFCC_for_classification and not useVV_for_classification:
+        features_MATLAB_URI = 'SVD2015/MFCC_29_30_0_0.5_0t/300_200_300/'
+        dim_timbre = 30 # MFCC from B. Lehner
+    
+    if useMFCC_for_classification and useVV_for_classification:
+        features_MATLAB_URI = 'SVD2015/'
+        dim_timbre = 35 # vocal var + MFCC  from B. Lehner
+    
+    if not useMFCC_for_classification and useVV_for_classification:
+        features_MATLAB_URI = '/SVD2015/varMFCC_29_30_0_0.5_0t/300_50_300/5_1_5/'
 
-    features_MATLAB_URI = 'SVD2015/'
-    dim_timbre = 35 # vocal var + MFCC  from B. Lehner
+        dim_timbre = 5 # vocal var
     
-#     features_MATLAB_URI = 'SVD2015/MFCC_29_30_0_0.5_0t/300_200_300/'
-#     dim_timbre = 30 # MFCC from B. Lehner
-    
-#     features_MATLAB_URI = 'SVD2015/varMFCC_29_30_0_0.5_0t/300_200_300/5_1_5/'
-#     dim_timbre = 5 # vocal var
 
     extract_timbre = 0
     
@@ -44,9 +54,9 @@ class   Parameters(object):
     
     if datasetIKala:
         
-        contour_URI = iKala_URI + '/Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-1.3_pFTh-0.7_tC-100_mD-100_vxTol-0.2/'
-        contour_URI = iKala_URI + '/Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-0.9_pFTh-0.9_tC-100_mD-100_vxTol-0.2/'
-        contour_URI = iKala_URI + '/Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-0.9_pFTh-0.9_tC-100_mD-200_vxTol-0.2_LEH/'
+        contour_URI = iKala_URI + '/Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-1.3_pFTh-0.7_tC-100_mD-100_vxTol-0.2_LEH/'
+#         contour_URI = iKala_URI + '/Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-0.9_pFTh-0.9_tC-100_mD-100_vxTol-0.2/'
+        contour_URI = iKala_URI + '/Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-0.9_pFTh-0.9_tC-100_mD-300_vxTol-0.2_LEH/'
 
 #         contour_URI = iKala_URI + '/Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-1.3_pFTh-0.9_tC-50_mD-100_vxTol-0.2/'
 #         contour_URI = iKala_URI + '/Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-1.3_pFTh-0.7_tC-100_mD-100_vxTol-0.2_LEH/'

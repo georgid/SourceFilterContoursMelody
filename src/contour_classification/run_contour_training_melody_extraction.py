@@ -14,13 +14,14 @@ import random
 import glob
 import os
 import json
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from contour_classification.experiment_utils import get_data_files
 try:
     import seaborn as sns
 except:
     print 'seaborn not available'
-import sys
 from Parameters import Parameters
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from main_contour_extraction import label_contours_and_store
 
 
@@ -65,10 +66,20 @@ def train_and_classify(mdb_files, train, test, dset_contour_dict, dset_annot_dic
     
             #### CONVERT PANDAS DATA to DATA for scikit Learn 
             feats, idxStartFeatures, idxEndFeatures = getFeatureInfo(anyContourDataFrame)
-    
+            print 'idxStartFeatures'
+            print idxStartFeatures
+            print 'idxEndFeatures'
+            print idxEndFeatures
+            
             X_train, Y_train = cc.pd_to_sklearn(train_contour_dict,idxStartFeatures,idxEndFeatures)
+            from numpy import inf
+            idx = X_train == -inf
+            X_train[idx] = 0
+            X_train = np.nan_to_num(X_train)
             X_valid, Y_valid = cc.pd_to_sklearn(valid_contour_dict,idxStartFeatures,idxEndFeatures)
+            X_valid = np.nan_to_num(X_valid)
             X_test, Y_test = cc.pd_to_sklearn(test_contour_dict,idxStartFeatures,idxEndFeatures)
+            X_test  = np.nan_to_num(X_test)
             np.max(X_train,0)
     
     
@@ -118,10 +129,11 @@ def eval(mel_output_dict, test_annot_dict, scores):
     ################ EVALUATION
     reload(gm)
     mel_scores = gm.score_melodies(mel_output_dict, test_annot_dict)
-    overall_scores = pd.DataFrame(columns=['VR', 'VFA', 'RPA', 'RCA', 'OA'], 
+    overall_scores = pd.DataFrame(columns=['VR', 'VFA', 'VF1' 'RPA', 'RCA', 'OA'], 
         index=mel_scores.keys())
     overall_scores['VR'] = [mel_scores[key]['Voicing Recall'] for key in mel_scores.keys()]
     overall_scores['VFA'] = [mel_scores[key]['Voicing False Alarm'] for key in mel_scores.keys()]
+    overall_scores['VF1'] = [mel_scores[key]['VF1'] for key in mel_scores.keys()]
     overall_scores['RPA'] = [mel_scores[key]['Raw Pitch Accuracy'] for key in mel_scores.keys()]
     overall_scores['RCA'] = [mel_scores[key]['Raw Chroma Accuracy'] for key in mel_scores.keys()]
     overall_scores['OA'] = [mel_scores[key]['Overall Accuracy'] for key in mel_scores.keys()]
@@ -133,8 +145,8 @@ def eval(mel_output_dict, test_annot_dict, scores):
 if __name__ == '__main__':
     
     
-    if len(sys.argv) != 4:
-        sys.exit('usage: {} <path-to-ikala/path-features> <use_SAL_features_for_training> <use_timbre_features_for_training>'.format(sys.argv[0]))
+    if len(sys.argv) != 5:
+        sys.exit('usage: {} <path-to-ikala/path-features> <use_SAL_features_for_training> <use_MFCC_features_for_training> <use_VV_features_for_training>'.format(sys.argv[0]))
     
     # plt.ion()
     
@@ -159,10 +171,27 @@ if __name__ == '__main__':
     tracks  = Parameters.tracks
     Parameters.contour_URI = sys.argv[1]
     Parameters.use_SAL_for_classification = int(sys.argv[2])
-    Parameters.use_SAL_for_classification = int(sys.argv[3])
+    Parameters.useMFCC_for_classification = int(sys.argv[3])
+    Parameters.useVV_for_classification = int(sys.argv[4])
      
-    dset_contour_dict_labeled, dset_annot_dict = label_contours_and_store(Parameters.contour_URI, Parameters.tracks, normalize=True)
+#     dset_contour_dict_labeled, dset_annot_dict = label_contours_and_store(Parameters.contour_URI, Parameters.tracks, normalize=True)
+    dset_contour_dict_labeled = {}
+    dset_annot_dict = {}
+    for track in tracks:
+        cdat, adat = get_data_files(track, normalize=True, meltype=1)
         
+#         adat  = adat.replace([np.inf, -np.inf], np.nan).fillna(0)
+#         plot_contours(cdat, adat)
+        if cdat.ix[:,12:17].isnull().values.any():
+             
+            print 'contour {} has nan.. replacing with 0s'.format(track)
+            cdat.ix[:,12:17]  = cdat.ix[:,12:17].replace([np.inf, -np.inf], np.nan).fillna(0)
+            if cdat.ix[:,12:17].isnull().values.any():
+                print 'contour {} has STILL nan.. replacing with 0s'.format(track)
+        dset_annot_dict[track] = adat.copy()
+        dset_contour_dict_labeled[track] = cdat
+   
+                
     
     mdb_files, splitter = eu.create_splits(test_size=0.25)
     

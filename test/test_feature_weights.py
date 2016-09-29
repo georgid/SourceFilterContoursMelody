@@ -9,10 +9,11 @@ visualize feature distribution
 
 import sys
 import os
-from src.contour_classification.experiment_utils import get_data_files,\
-    olap_stats
-from src.main_contour_extraction import label_contours_and_store
 sys.path.append(os.path.join(os.path.dirname(__file__), '../src'))
+from contour_classification.experiment_utils import get_data_files,\
+    olap_stats
+from main_contour_extraction import label_contours_and_store
+import json
 from contour_classification.experiment_utils import compute_all_overlaps
 from contour_classification.contour_utils import plot_contours_interactive
 from Parameters import Parameters
@@ -21,27 +22,33 @@ import matplotlib.pyplot as plt
 
 def printLabels(track_list):
     '''
-        - how many examples have zero for variance or MFCC
+        - how many examples have zero for Vvariance or/and MFCC
     - how many examples have labels 0 and 1
     '''
 #     dset_contour_dict_labeled, dset_annot_dict = label_contours_and_store(Parameters.contour_URI, track_list, normalize=False)
     
-    feature1 = 'duration'
+    feature1 = 'timbre1'
     
     len_label = [0,0]
-    len_feature_diff_zero = 0
+    len_feature_diff_zero = [0,0]
     for track in track_list:
-#          contour_data_= dset_contour_dict_labeled[track]
-         contour_data_,_ = get_data_files(track, normalize=False, meltype=1)
-         for label in range(2):
-             curr_len = len(contour_data_[contour_data_['labels'] == label])
+#         contour_data_= dset_contour_dict_labeled[track]
+        contour_data_,_ = get_data_files(track, normalize=False, meltype=1)
+        for label in range(2):
+             contour_data_label = contour_data_[contour_data_['labels'] == label]
+             curr_len = len(contour_data_label)
              len_label[label] += curr_len
          
-         len_feature_diff_zero += len(contour_data_[contour_data_[feature1]== 0.0])
+             if feature1 in contour_data_label.columns:
+                 a = contour_data_label[feature1] == 0.0
+                 tmpLen = len(contour_data_label[a])
+             else:
+                 tmpLen = 0
+             len_feature_diff_zero[label] += tmpLen
     
     for label in range(2):         
         print 'len of label {} is  {}'.format( label, len_label[label] )
-        print 'feature {} =0  {} times'.format(feature1, len_feature_diff_zero )
+        print 'feature {} =0  {} times'.format(feature1, len_feature_diff_zero[label] )
 
 
 
@@ -76,16 +83,16 @@ def plot_2features_spaces(track_list):
 #     plt.legend()
 #     plt.show()
     
-    feature2 = 'timbre3' 
-    feature1= 'timbre2'
+    feature2 = 'timbre4' 
+    feature1= 'timbre3'
     
             
 #         plt.scatter(contour_data['timbre1'], contour_data['timbre2'], marker='o', c=contour_data['labels'])
 #         plt.show()
 #         plt.scatter(contour_data['timbre2'], contour_data['timbre3'], marker='o', c=contour_data['labels'])
 #         plt.show()
-    plt.scatter(contour_data['duration'], contour_data['pitch std'], marker='o', c=contour_data['labels'])
-    plt.show()
+#     plt.scatter(contour_data['duration'], contour_data['pitch std'], marker='o', c=contour_data['labels'])
+#     plt.show()
     
     plt.scatter(nonvocal_contour_data[feature1], nonvocal_contour_data[feature2], marker='o', c=nonvocal_contour_data['labels'])
     plt.show()
@@ -121,9 +128,29 @@ def plot_all_contours(tracks):
 
 if __name__ == '__main__':
 #     plot_2_dim_chart()
-
+    
+    
     track_list = Parameters.tracks
 #     track_list = [Parameters.test_track]
 #     plot_all_contours(track_list)
+   
+    
+    #####################################
+    
+#     dir_tracks = os.path.join( os.path.dirname(os.path.realpath(__file__)) , '../src/contour_classification/melody_trackids_iKala_subset.json' )
+
+#     with open(dir_tracks, 'r') as fhandle:
+#             track_list = json.load(fhandle)['tracks']
+
 #     plot_2features_spaces(track_list)
+
+
+
+############################
+#     track_list = ['10161_chorus']
+    
+    if len(sys.argv) != 2:
+        sys.exit('usage: {}  <path-features>'.format(sys.argv[0]))
+    path_ = sys.argv[1]
+    Parameters.contour_URI = path_
     printLabels(track_list)

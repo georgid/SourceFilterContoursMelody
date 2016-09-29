@@ -176,10 +176,14 @@ def score_melodies(mel_output_dict, test_annot_dict):
            print '{} has no melody contours detected. skipping it'.format( key)
            continue
         if isinstance(est,pd.DataFrame) or isinstance(est, pd.Series):
-            melody_scores[key] = mir_eval.melody.evaluate(ref['time'].values,
+            melody_scores_mir_eval = mir_eval.melody.evaluate(ref['time'].values,
                                                       ref['f0'].values,
                                                       est.index.values,
                                                       est.values)
+            recall = melody_scores_mir_eval['Voicing Recall']
+            precision = 1.0 - melody_scores_mir_eval['Voicing False Alarm']
+            melody_scores_mir_eval['VF1'] = 2 * recall * precision / (recall + precision)
+            melody_scores[key] = melody_scores_mir_eval
         else:
             times, pitches = est
             melody_scores[key] = mir_eval.melody.evaluate(ref['time'].values,

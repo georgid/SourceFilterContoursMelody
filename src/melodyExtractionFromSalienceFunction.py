@@ -3,6 +3,8 @@ from timbreFeatures import compute_timbre_features,\
 from HarmonicSummationSF import calculateSpectrum, calculateSF
 import json
 from Parameters import Parameters
+from pandas.tools.merge import concat
+from contourExtraction import extend_contour_features
 __author__ = 'juanjobosch'
 
 import sys, os
@@ -88,16 +90,27 @@ def MEFromSFFile(fn, outputfile, wavFile, options):
 
 
 
-def saveContours(options, stepNotes, contours_bins_SAL, contours_saliences_SAL, contours_start_times_SAL, contourTimbre):
+def saveContours(options, stepNotes, contours_bins_SAL, contours_saliences_SAL, contours_start_times_SAL, contourTimbre, old_contour_data=None):
+    '''
+    
+    '''
     NContours = len(contours_bins_SAL)
     if (NContours > 0):
         # If contour need to be saved for pitch contour classification, we compute the the contour data
         if options.saveContours:
+           
             try:
-                extraFeatures = createDataFrameWithExtraFeatures(contours_start_times_SAL, contours_bins_SAL, contourTimbre, contourTonalInfo=None)
-                contour_data = ce.compute_contour_data(contours_bins_SAL, contours_saliences_SAL, 
-                    contours_start_times_SAL, stepNotes, options.minF0, 
-                    options.hopsize, extra_features=extraFeatures)
+                extra_features = createDataFrameWithExtraFeatures(contours_start_times_SAL, contours_bins_SAL, contourTimbre, contourTonalInfo=None)
+                if old_contour_data is None: # create new contour
+                    
+                    contour_data = ce.compute_contour_data(contours_bins_SAL, contours_saliences_SAL, 
+                        contours_start_times_SAL, stepNotes, options.minF0, 
+                        options.hopsize, extra_features=extra_features)
+                elif extra_features is not None: # use old_contour_data and combine them
+                    
+                  
+                    contour_data = extend_contour_features(old_contour_data, extra_features) 
+                    
                 picklefile = options.pitch_output_file + Parameters.CONTOUR_EXTENSION
                 from pickle import dump
                 with open(picklefile, 'wb') as handle:

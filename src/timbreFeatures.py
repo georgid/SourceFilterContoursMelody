@@ -7,6 +7,7 @@ Created on Aug 26, 2016
 import numpy as np
 from HarmonicSummationSF import calculateSpectrum
 from Parameters import Parameters
+from src.fluctogram import extact_pseudo_fluctogram
 if Parameters.extract_timbre:
     from essentia.standard import HarmonicModelAnal
 from essentia.standard import *
@@ -101,23 +102,13 @@ def compute_timbre_features(contours_bins_SAL, contours_start_times_SAL, fftgram
 #                 print 'working on contour {}...'.format(i)
                 
                 times_contour, idx_start = get_ts_contour(contours_f0[i], contours_start_times_SAL[i], times_recording, options)
-             
+           
                 
-
-                if Parameters.read_features_from_MATLAB:
-                # load SVD-lenher extracted
-                    contour_URI = os.path.join(options.contours_output_path, Parameters.features_MATLAB_URI, options.track + '_' + str(i)) 
-                    timbre_feature = np.empty((0, Parameters.dim_timbre))
-                    with open(contour_URI + '.arff') as csvfile:
-                        spamreader = csv.reader(csvfile)
-                        for row in spamreader:
-                            
-                            curr_feature = np.array(row).astype(np.float).reshape(1,len(row))
-                            timbre_feature = np.append(timbre_feature, curr_feature, axis=0)
-                else:
-                    timbre_feature, audio = extract_vocal_var(fftgram, idx_start, contours_f0[i],  Parameters.dim_timbre,   options)
+                  
+#                 timbre_feature, audio = extract_vocal_var(fftgram, idx_start, contours_f0[i],  Parameters.dim_timbre,   options)
+                timbre_feature = extact_pseudo_fluctogram(contours_bins_SAL[i], options)
+                
                 # take median over features
-                
                 
                 median_timbre_features = numpy.median(timbre_feature, axis = 0)
                 contourTimbre[i,:] = median_timbre_features
@@ -128,7 +119,36 @@ def compute_timbre_features(contours_bins_SAL, contours_start_times_SAL, fftgram
 
     return contourTimbre
 
+def load_timbre_features(contour_data_frame, options):
+    '''
+    load timbre features externally computed in MATLAB
+    '''
+    NContours = contour_data_frame.shape[0]
+    contourTimbre =  np.zeros([NContours, Parameters.dim_timbre]) # compute timbral features
+    for i in range(NContours):
+        # load SVD-lenher extracted
+        contour_URI = os.path.join(options.contours_output_path, Parameters.features_MATLAB_URI, options.track + '_' + str(i)) 
+        timbre_feature = np.empty((0, Parameters.dim_timbre))
+        try:    
+            with open(contour_URI + '.arff') as csvfile:
+                spamreader = csv.reader(csvfile)
+                for row in spamreader:
+                    curr_feature = np.array(row).astype(np.float).reshape(1,len(row))
+                    if np.isnan(curr_feature).any():
+                        curr_feature = np.nan_to_num(curr_feature) # workaround for NaNs -> to zero
+                    
+                    timbre_feature = np.append(timbre_feature, curr_feature, axis=0)
+                    
+        except: # if file not generated for some reason, use zeros as workaround 
+            timbre_feature = np.zeros((0, Parameters.dim_timbre))
+        
+        median_timbre_features = numpy.median(timbre_feature, axis = 0)
+        contourTimbre[i,:] = median_timbre_features
+    
 
+    return contourTimbre
+    
+    
 
 def compute_harmonic_magnitudes(contour_f0s,  fftgram, idx_start, options):
     '''

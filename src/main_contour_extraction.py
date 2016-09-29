@@ -17,6 +17,8 @@ from timbreFeatures import compute_timbre_features
 from melodyExtractionFromSalienceFunction import saveContours
 import parsing
 from timbreFeatures import contour_to_audio
+from numpy import isnan
+from timbreFeatures import load_timbre_features
 
 # mel_type = 1
 #     #  for iKala
@@ -40,7 +42,7 @@ def create_contours_and_store(tracks, contours_output_path):
     options.timeContinuity = 100
 
 #     options.timeContinuity = 50     # medley DB
-    options.minDuration = 200
+    options.minDuration = 300
     options.voicingTolerance = 1
     options.useVibrato = False
     
@@ -75,6 +77,7 @@ def load_contour_and_extractTimbre_and_save(tracks, contours_output_path, option
         timestamps_recording = np.arange(len(fftgram)) * float(options.hopsizeInSamples) / options.Fs
             
         contour_data_frame, adat = get_data_files(track, meltype=1)
+        
         contours_start_times_df, contours_bins_df, contours_saliences_SAL_df = contours_from_contour_data(contour_data_frame)
         
         contours_bins_SAL = []
@@ -96,8 +99,17 @@ def load_contour_and_extractTimbre_and_save(tracks, contours_output_path, option
         
         if Parameters.extract_timbre: 
             options.contours_output_path = contours_output_path
-            contourTimbre = compute_timbre_features(contours_bins_SAL, contours_start_times_SAL, fftgram, timestamps_recording, options)
-            saveContours(options, options.stepNotes, contours_bins_SAL, contours_saliences_SAL, contours_start_times_SAL, contourTimbre)
+            if Parameters.read_features_from_MATLAB:
+                contourTimbre =  load_timbre_features(contour_data_frame, options)
+            else:
+                contourTimbre = compute_timbre_features(contours_bins_SAL, contours_start_times_SAL, fftgram, timestamps_recording, options)
+            
+            if isnan(contourTimbre).any():
+                print 'contour for file {} has nans'.format(options.pitch_output_file)
+            
+            
+            saveContours(options, options.stepNotes, contours_bins_SAL, contours_saliences_SAL, contours_start_times_SAL, \
+                         contourTimbre, old_contour_data=contour_data_frame)
         if Parameters.to_audio: # simply resynth to audio
             options.contours_output_path = contours_output_path
             contour_to_audio(contours_bins_SAL, contours_start_times_SAL, fftgram, timestamps_recording, options)
@@ -161,7 +173,7 @@ if __name__ == '__main__':
     print Parameters.contour_URI
     args, options = parsing.parseOptions(sys.argv)
     
-#     tracks = ['21057_chorus']
+#     tracks = ['61647_verse']
     tracks = Parameters.tracks
 #     Parameters.contour_URI += '/vv_hopS-0.5/'
     if whichStep_ == 1:

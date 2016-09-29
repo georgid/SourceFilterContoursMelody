@@ -277,7 +277,7 @@ key "rocamora2007comparing"
 status open
 
 \begin_layout Plain Layout
-Vembu
+Vembu see more from mine and Nadine's voicing
 \end_layout
 
 \end_inset
@@ -380,13 +380,13 @@ from the polyphonic mix along with a set of features describing the contour's
  pitch characteristics.
  Then contour timbre features are extracted from the isolated spectral component
 s with origin from the contour's source: vocal or instrumental.
- Next using both pitch and timbre features a classifier is fit to discriminate
- the contour's source.
+ Next using both pitch and timbre features a classifier is trained to discrimina
+te the contour's source.
 
 \color red
  
 \color inherit
-Finally a single main vocal melody has to be decoded, because there might
+Finally a single vocal melody line has to be decoded, because there might
  be regions, in which candidate contours are overlapping.
  We assume that singing voice appears only as 'lead instrument' (e.g.
  excluding backing voice), therefore final vocal regions are determined
@@ -490,6 +490,10 @@ discard decription of one param if it does not matter
 
 \end_layout
 
+\begin_layout Itemize
+Vibrato (presence, rate and extent)
+\end_layout
+
 \begin_layout Subsection
 Extraction of timbre features
 \end_layout
@@ -557,10 +561,9 @@ Extraction of harmonic partials
 \end_layout
 
 \begin_layout Standard
-The harmonic sinusoidal model of [Serra] filters the spectral components
- corresponding to a source with fundamental frequency.
- Parabolic interpolation is used for locating the peaks corresponding to
- the the harmonics 
+The harmonic sinusoidal model of [Serra] selects the spectral content, generated
+ by a source with fundamental frequency.
+ The spectral peaks are computed at the location of harmonics 
 \begin_inset Formula $f^{n}\approx h_{n}f^{0}$
 \end_inset
 
@@ -569,7 +572,7 @@ The harmonic sinusoidal model of [Serra] filters the spectral components
 \end_inset
 
  is the harmonic index.
- This gives a more accurate estimate of the peak locations and amplitudes.
+ Parabolic interpolation refines the exact frequency locations.
  We estimate a relatively huge number of harmonics (30), in order to exploit
  the instability of the singing voice at high harmonics as compared to other
  instruments.
@@ -580,13 +583,14 @@ Vocal Variance
 \end_layout
 
 \begin_layout Standard
-Singing voice can be distinguished for its continuous timbre: When singers
- articulate actual words, the variation of the spectral envelope is more
- pronounced than for most other instruments [
+Singing voice can be distinguished for its relatively frequent timbre fluctuatio
+n: When singers vary their vocal tract, the variation of the spectral envelope
+ is more pronounced than for most other instruments [
 \color orange
 ref
 \color inherit
 ].
+ This is especially true when singers articulate actual words.
  To approximate the spectral shape, MFCCs have been widely utilized, because
  they relate well to changes of the vocal tract shape.
  Features that describe spectral dynamics over time proved to contribute
@@ -626,8 +630,8 @@ Contour classification
 \end_layout
 
 \begin_layout Standard
-We need to discriminate between contours that have as source singing voice
- and these with origin from background instruments.
+We need to discriminate between contours that have as a source singing voice
+ and those with origin from background instruments.
  We opted for a Random Forest Classifier, because it was shown to outperform
  a generative classifier 
 \begin_inset CommandInset citation
@@ -732,36 +736,7 @@ We present two experiments.
  First we train and evaluate our feature set on a dataset with relatively
  predominant singing voice.
  We experiment with different parameters of vocal variance and fluctogram,
- as well as different contour sets S as input and different overlapping
- threshold 
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\strikeout off
-\uuline off
-\uwave off
-\noun off
-\color none
-
-\begin_inset Formula $\Theta$
-\end_inset
-
-
-\family default
-\series default
-\shape default
-\size default
-\emph default
-\bar default
-\strikeout default
-\uuline default
-\uwave default
-\noun default
-\color inherit
-.
+ as well as different contour sets S as input.
  Then these parameters are kept unchanged for a comparison with other methods
  on a dataset with more challenging singing material in the second experiment.
  
@@ -772,7 +747,7 @@ Metrics
 \end_layout
 
 \begin_layout Standard
-We report voicing recall, and false alarm rate.
+We report voicing recall, false alarm and F1-measure.
  Melody extraction metrics are reported for the sake of completeness.
  All evaluation metrics were computed using mir_eval 
 \begin_inset CommandInset citation
@@ -800,21 +775,92 @@ iKala ...
 
 \begin_layout Standard
 The complete feature set consists of features_SAL and the median of the
- vocal variance(VV) and fluctogram.
- A list of feature importances is shown in Figure...
+ vocal variance (VV) 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+and fluctogram
+\end_layout
+
+\end_inset
+
+.
  
+\end_layout
+
+\begin_layout Standard
+Changing the contour salience parameters 
+\begin_inset Formula $\tau_{+}=0.9$
+\end_inset
+
+ and 
+\begin_inset Formula $\tau_{\sigma}=0.9$
+\end_inset
+
+, used in 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "bittnermelody"
+
+\end_inset
+
+, can increase the number of input contorus, e.g.
+ recall of baseline.
+ Setting 
+\begin_inset Formula $\tau_{+}=0.7$
+\end_inset
+
+ and 
+\begin_inset Formula $\tau_{\sigma}=1.3$
+\end_inset
+
+ resulted in a huge amount of short non-vocal contours and vocal contours
+ being underrepresented.
+ We varied minimal contour duration, because the vocal variance does not
+ make sense for too short contours.
+ Also, to assure enough MFCC frames per contour, we decreased the MFCCs
+ hopsize of 200 ms, proposed in 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "lehner2014reduction"
+
+\end_inset
+
+.
+ Figure 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "Results_diff_feature_params"
+
+\end_inset
+
+ lists voicing metrics for different feature parameters of contours with
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+A list of feature importances is shown in Figure...
+ 
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
 \begin_inset Float figure
 wide false
 sideways false
-status collapsed
+status open
 
 \begin_layout Plain Layout
 \begin_inset Tabular
-<lyxtabular version="3" rows="3" columns="7">
+<lyxtabular version="3" rows="8" columns="8">
 <features tabularvalignment="middle">
+<column alignment="center" valignment="top">
 <column alignment="center" valignment="top">
 <column alignment="center" valignment="top">
 <column alignment="center" valignment="top">
@@ -828,6 +874,15 @@ status collapsed
 
 \begin_layout Plain Layout
 feature set
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+min_duration
 \end_layout
 
 \end_inset
@@ -854,6 +909,15 @@ VFA
 \begin_inset Text
 
 \begin_layout Plain Layout
+VF1
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
 RPA
 \end_layout
 
@@ -868,20 +932,11 @@ RCA
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-OA
-\end_layout
-
-\end_inset
-</cell>
 <cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
-
+OA
 \end_layout
 
 \end_inset
@@ -892,7 +947,16 @@ OA
 \begin_inset Text
 
 \begin_layout Plain Layout
-features_SAL
+features_SAL 1.3 0.7
+\end_layout
+
+\end_inset
+</cell>
+<cell multirow="3" alignment="center" valignment="middle" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+100
 \end_layout
 
 \end_inset
@@ -901,7 +965,7 @@ features_SAL
 \begin_inset Text
 
 \begin_layout Plain Layout
-0.92
+92.
 \end_layout
 
 \end_inset
@@ -910,7 +974,16 @@ features_SAL
 \begin_inset Text
 
 \begin_layout Plain Layout
-0.42
+42.
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
 \end_layout
 
 \end_inset
@@ -933,11 +1006,76 @@ features_SAL
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
 0.73
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
++VV (300_50_300)
+\end_layout
+
+\end_inset
+</cell>
+<cell multirow="4" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
 \end_layout
 
 \end_inset
@@ -957,7 +1095,312 @@ features_SAL
 \begin_inset Text
 
 \begin_layout Plain Layout
-+VV
+features_SAL
+\end_layout
+
+\end_inset
+</cell>
+<cell multirow="3" alignment="center" valignment="middle" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+200
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+88.9
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+44.7
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+76.5
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+81.4
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+69.8
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
++VV (300_100_300)
+\end_layout
+
+\end_inset
+</cell>
+<cell multirow="4" alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+87.4
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+35.9
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+72.1
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
++VV (300_50_300)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+87.9
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+37.6
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+70.9
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
 \end_layout
 
 \end_inset
@@ -1036,6 +1479,13 @@ Mean metrics from 5 random splits of training and test data on the iKala
 \end_inset
 
 
+\begin_inset CommandInset label
+LatexCommand label
+name "Results_diff_feature_params"
+
+\end_inset
+
+
 \end_layout
 
 \end_inset
@@ -1047,7 +1497,7 @@ Mean metrics from 5 random splits of training and test data on the iKala
 \begin_inset Float figure
 wide false
 sideways false
-status open
+status collapsed
 
 \begin_layout Plain Layout
 \begin_inset Caption Standard
@@ -1069,8 +1519,20 @@ VR and VFA on iKala as a function of overlap size
 \begin_layout Standard
 It can be seen that voicing influences slightly accuracy of the extracted
  melody.
- Some errors come from training the non-vocal class on contours from non-main
- melody, which are essentially vocal with octave errors.
+ It has to be noted that some errors come from training the non-vocal class
+ on contours from non-main melody, which are essentially vocal with octave
+ errors.
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+number of contours of two classes deppending on contour params: test/test_weight
+s->plotLabels()
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Subsection
@@ -1437,10 +1899,6 @@ status open
 
 \begin_layout Plain Layout
 compare to Bernhard: 
-\end_layout
-
-\begin_layout Plain Layout
--did we modofy his parameters for contours? 
 \end_layout
 
 \begin_layout Plain Layout

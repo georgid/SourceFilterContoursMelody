@@ -1,4 +1,5 @@
 import contour_classification.contour_utils as cu
+from pandas.tools.merge import concat
 
 def compute_contour_data(contours_bins, contours_saliences, contours_start_times, stepNotes, minF0, hopsize,
                          normalize=True, extra_features=None):
@@ -86,9 +87,9 @@ def compute_contour_data(contours_bins, contours_saliences, contours_start_times
 
     
     # If extra features are used, they are set before the first_time
-#     if extra_features is not None:
-#         dfFeatures = concat([contour_data.ix[:, 0:12], extra_features], axis=1)
-#         contour_data = concat([dfFeatures, contour_data.ix[:, 12:]], axis=1)
+    # TODO: replace here with this instead of following line. Maybe pandas does not work here for me
+#     contour_data = extend_contour_features(contour_data, extra_features)
+    
     
     if extra_features is not None:
         sal_features_data = contour_data[headers[0:12]]
@@ -98,11 +99,16 @@ def compute_contour_data(contours_bins, contours_saliences, contours_start_times
         contour_data = concat([dfFeatures, frame_by_frame_features_data ], axis=1)    
         
 
-    # All classification labels are initialised (will be updated while performing contour classification)
-    contour_data['overlap'] = -1
-    contour_data['labels'] = -1
-    contour_data['melodiness'] = ""
-    contour_data['mel prob'] = -1
+    # All classification labels are initialised (will be updated while performing contour classification). 
+    # if exist do not create
+    if 'overlap' not in contour_data.columns:
+        contour_data['overlap'] = -1
+    if 'labels' not in contour_data.columns:
+        contour_data['labels'] = -1
+    if 'melodiness' not in contour_data.columns:
+        contour_data['melodiness'] = -1
+    if 'mel prob' not in contour_data.columns:
+        contour_data['mel prob'] = -1
     
     
     # Normalising features
@@ -112,3 +118,15 @@ def compute_contour_data(contours_bins, contours_saliences, contours_start_times
     print "Contour dataframe created"
 
     return contour_data
+
+def extend_contour_features(contour_data, extra_features):
+        '''
+        Parameters
+        ---------
+         extra_features - DataFr with features
+        '''
+        if extra_features is not None:
+            dfFeatures = concat([contour_data.ix[:, 0:12], extra_features], axis=1)
+            startIdx = contour_data.columns.get_loc('first_time')
+            contour_data = concat([dfFeatures, contour_data.ix[:, startIdx:]], axis=1)
+        return contour_data

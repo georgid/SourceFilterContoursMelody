@@ -58,17 +58,30 @@ def load_contour_data(fpath, normalize=True):
 
     # Check if there is any column with all nans... it should not be considered
     df = contour_data.isnull().all()
-    if np.where(df)[0]:
-        contour_data = contour_data.drop(contour_data.columns[np.where(df)[0][0]], axis=1)
+    indices_Nan_columns = np.where(df)[0]
+    while len(indices_Nan_columns != 0):
+
+        if indices_Nan_columns[0]:
+            contour_data = contour_data.drop(contour_data.columns[indices_Nan_columns[0]], axis=1)
+        df = contour_data.isnull().all() 
+        indices_Nan_columns = np.where(df)[0]
 
     #   To ensure the contour has a duration > 0
     contour_data['duration'] = np.fmax(contour_data['duration'].values,0.001)
 
     contour_data.num_end_cols = 0
-#     contour_data['overlap'] = -1  # overlaps are unset
-#     contour_data['labels'] = -1  # all labels are unset
-#     contour_data['melodiness'] = ""
-#     contour_data['mel prob'] = -1
+    ### most probably they are already set
+    # All classification labels are initialised (will be updated while performing contour classification). 
+    # if exist do not create
+    if 'overlap' not in contour_data.columns:
+        contour_data['overlap'] = -1
+    if 'labels' not in contour_data.columns:
+        contour_data['labels'] = -1
+    if 'melodiness' not in contour_data.columns:
+        contour_data['melodiness'] = -1
+    if 'mel prob' not in contour_data.columns:
+        contour_data['mel prob'] = -1
+        
     contour_data.num_end_cols = 4
 
     if normalize:
@@ -507,17 +520,18 @@ def join_contours(contours_list):
     all_contours = pd.concat(contours_list, ignore_index=False)
     return all_contours
 
-def getFeatureInfo(contourDF):
+def getFeatureInfo_old(contourDF):
     if Parameters.use_SAL_for_classification:
-        if Parameters.useTimbre_for_classification: # last timbre feature is before first_time
+        if Parameters.useMFCC_for_classification: # last timbre feature is before first_time
             if 'first_time' in contourDF.columns:
                 idxEndFeatures = contourDF.columns.get_loc('first_time')-1
+                idxStartFeatures = contourDF.columns.get_loc('timbre5')
             else:
                 sys.exit('contour DataFrame does not have field first_time')
         else: # only SAL features
             idxEndFeatures = 11     # From the original implementation, 12 is the last feature
     
-    elif Parameters.useTimbre_for_classification: #  only timbre
+    elif Parameters.useMFCC_for_classification: #  only timbre
         if 'timbre0' in contourDF.columns:
         
             idxStartFeatures = contourDF.columns.get_loc('timbre0')
@@ -530,6 +544,30 @@ def getFeatureInfo(contourDF):
         idxStartFeatures = contourDF.columns.get_loc('duration')
     else:
         idxStartFeatures=0
+    feats = contourDF.columns[idxStartFeatures:idxEndFeatures+1]
+    return feats,idxStartFeatures,idxEndFeatures
+
+
+def getFeatureInfo(contourDF):
+    '''
+    always use SAL, plus VV only or plus all
+    '''
+    if 'duration' in contourDF.columns:
+        idxStartFeatures = contourDF.columns.get_loc('duration')
+    else:
+        idxStartFeatures=0
+    
+#     idxEndFeatures = contourDF.columns.get_loc('timbre0') - 1
+    idxEndFeatures = 11
+    
+    if Parameters.useMFCC_for_classification and Parameters.useVV_for_classification:
+        if 'first_time' in contourDF.columns:
+                idxEndFeatures = contourDF.columns.get_loc('first_time')-1
+                idxStartFeatures = contourDF.columns.get_loc('timbre5')
+        else:
+                sys.exit('contour DataFrame does not have field first_time') 
+    elif Parameters.useVV_for_classification and not Parameters.useMFCC_for_classification:
+        idxEndFeatures = contourDF.columns.get_loc('timbre4')
     feats = contourDF.columns[idxStartFeatures:idxEndFeatures+1]
     return feats,idxStartFeatures,idxEndFeatures
 
