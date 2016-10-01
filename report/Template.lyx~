@@ -379,7 +379,7 @@ A block diagram can be seen in Figure 1.
 from the polyphonic mix along with a set of features describing the contour's
  pitch characteristics.
  Then contour timbre features are extracted from the isolated spectral component
-s with origin from either vocal or instrument.
+s with origin from the contour's source: either vocal or instrumental.
  Next using both pitch and timbre features a classifier is trained to discrimina
 te the contour's source.
 

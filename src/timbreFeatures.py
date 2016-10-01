@@ -7,7 +7,7 @@ Created on Aug 26, 2016
 import numpy as np
 from HarmonicSummationSF import calculateSpectrum
 from Parameters import Parameters
-from src.fluctogram import extact_pseudo_fluctogram
+from fluctogram import extact_pseudo_fluctogram
 if Parameters.extract_timbre:
     from essentia.standard import HarmonicModelAnal
 from essentia.standard import *
@@ -58,9 +58,10 @@ def contour_to_audio(contours_bins_SAL, contours_start_times_SAL, fftgram, times
     ''' 
     resynthesize contours to audio
     for listening to or extrawcting features externally
+    use harmonic modeling
     '''
     NContours = len(contours_bins_SAL)
-    
+    spectogram_contours = []
     ### convert cent bins to herz
     contours_f0 = []
     a = options.stepNotes / 1200.0
@@ -74,11 +75,12 @@ def contour_to_audio(contours_bins_SAL, contours_start_times_SAL, fftgram, times
 
             contour_URI = options.contours_output_path + options.track + '_' + str(i)
             hfreqs, magns, phases = compute_harmonic_magnitudes(contours_f0[i], fftgram, idx_start, options)
-#                 audio_contour, spectogram_contour = harmonic_magnitudes_to_audio(hfreqs, magns, phases, options)
- 
+            audio_contour, spectogram_contour = harmonic_magnitudes_to_audio(hfreqs, magns, phases, options)
+            spectogram_contours.append(spectogram_contour)
+            
             if not os.path.isfile(contour_URI  + '.wav'):
                 resynthesize(hfreqs, magns, phases, 44100, 128, contour_URI  + '.wav')
-            
+    return  spectogram_contours 
             
 
 def compute_timbre_features(contours_bins_SAL, contours_start_times_SAL, fftgram, times_recording, options):
@@ -258,32 +260,7 @@ def compute_harm_variation(hfreq, magns):
     '''
     pass
 
-def compute_amplitude_variation(hfreq, magns):
-    '''
-    
-    variance of amplitudes harmonics
-     
-    '''
-    varianceLength = 1.0 # 1 second
-    
-    mfccs_array = mfccs_array[:, 1:num_mfccs_var+1]
-    
-    num_mfccs= mfccs_array.shape[1]       
-    num_frames = len(magns)
-    
-   
-    # variance num frames
-    numFrVar = int(math.floor(options.Fs * varianceLength / _frameSize))
-    vocal_var_array = np.zeros(mfccs_array.shape)
-    
-    for i in range(0, num_frames):
-        startIdx = max(0,i-numFrVar)
-        endIdx = min( num_frames-1, i + numFrVar )
-    
-        # iterate over mfccs
-        for coeff in range(num_mfccs):
-            mfcc_slice = mfccs_array [ startIdx : endIdx + 1, coeff ]
-            vocal_var_array[i, coeff] = np.var( mfcc_slice )
+
 
 def harmonics_to_audio(hfreq, magns, phases, run_sine_model_synth,  run_ifft, run_overl):
     '''

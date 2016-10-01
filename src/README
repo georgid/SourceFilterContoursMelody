@@ -1,0 +1,37 @@
+
+
+PATH_CONTOURS=Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-0.9_pFTh-0.9_tC-100_mD-200_vxTol-0.2_LEH/
+
+1) #extract contours: 
+python ~/workspace/SourceFilterContoursMelody/src/main_contour_extraction.py ~/Documents/iKala/ 1  $PATH_CONTOURS
+
+NOTE: the extension pitch.ctr is kept for all added timbre features also
+
+# or get them 
+cp /home/georgid/Documents/iKala/Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-0.9_pFTh-0.9_tC-100_mD-200_vxTol-0.2/*.pitch.ctr  $PATH_CONTOURS
+
+2) extract timbre features
+if with MATLAB:
+	set Parameters.features_MATLAB = True
+	# contours -to- audio
+	python ~/workspace/SourceFilterContoursMelody/src/main_contour_extraction.py ~/Documents/iKala/ 3  $PATH_CONTOURS
+	
+	# extract feat. matlab.. Bernhard Lehner
+	in matlab in /home/georgid/Documents/svd
+	then extractSVD2015features
+
+
+python ~/workspace/SourceFilterContoursMelody/src/main_contour_extraction.py ~/Documents/iKala/ 2  $PATH_CONTOURS
+
+3) classify
+# classify SALomon's features:
+python ~/workspace/SourceFilterContoursMelody/src/contour_classification/run_contour_training_melody_extraction.py $PATH_CONTOURS 1 0 0
+
+# classify SALomon's features + fluctogram:
+python ~/workspace/SourceFilterContoursMelody/src/contour_classification/run_contour_training_melody_extraction.py $PATH_CONTOURS 1 1 0
+
+# classify SALomon's features + VV:
+if experimenting with diff feature parameters:  set Parameters.use_<featureName>_for_classification  << used in src.contour_classification.contour_utils.getFeatureInfo() >>
+
+
+python ~/workspace/SourceFilterContoursMelody/src/contour_classification/run_contour_training_melody_extraction.py $PATH_CONTOURS 1 0 1

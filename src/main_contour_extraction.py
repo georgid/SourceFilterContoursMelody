@@ -20,6 +20,7 @@ from timbreFeatures import contour_to_audio
 from numpy import isnan
 from timbreFeatures import load_timbre_features
 
+
 # mel_type = 1
 #     #  for iKala
 # if Parameters.datasetIKala:
@@ -65,55 +66,90 @@ def create_contours_and_store(tracks, contours_output_path):
         times, pitch = MEFromSF(timesHSSF, HSSF, fftgram, options)
         
 
-def load_contour_and_extractTimbre_and_save(tracks, contours_output_path, options):
+def add_timbre_features_and_save(tracks, contours_output_path, options):
     
     '''
     toAudio - if True store resynthesized audio for each contour and return without contour extraction
     else: extract Timbre and save
     '''
+    
     for track in tracks:
+        
+        contour_data_frame, contours_bins_SAL, contours_saliences_SAL, contours_start_times_SAL = load_contour(track, options)
+
         wavfile_  = os.path.join(Parameters.iKala_URI, 'Wavfile', track + '.wav')
         _, fftgram = calculateSpectrum(wavfile_, options.hopsizeInSamples)
         timestamps_recording = np.arange(len(fftgram)) * float(options.hopsizeInSamples) / options.Fs
-            
-        contour_data_frame, adat = get_data_files(track, meltype=1)
         
-        contours_start_times_df, contours_bins_df, contours_saliences_SAL_df = contours_from_contour_data(contour_data_frame)
         
-        contours_bins_SAL = []
-        contours_saliences_SAL = []
-        for (freqs, saliences) in zip(contours_bins_df.iterrows(), contours_saliences_SAL_df.iterrows()) :
-            freqs = freqs[1].values
-            freqs = freqs[~np.isnan(freqs)] # remove trailing nans
-            contours_bins_SAL.append(freqs)
-            
-            saliences = saliences[1].values
-            saliences = saliences[~np.isnan(saliences)] # remove trailing nans
-            contours_saliences_SAL.append(saliences)
-            
-        contours_start_times_SAL = contours_start_times_df.values[:,0]
         options.saveContours = True
         options.track = track
         
         options.pitch_output_file    = os.path.join(contours_output_path, track)
         
-        if Parameters.extract_timbre: 
-            options.contours_output_path = contours_output_path
-            if Parameters.read_features_from_MATLAB:
-                contourTimbre =  load_timbre_features(contour_data_frame, options)
-            else:
-                contourTimbre = compute_timbre_features(contours_bins_SAL, contours_start_times_SAL, fftgram, timestamps_recording, options)
+    
+        options.contours_output_path = contours_output_path
+        if Parameters.read_features_from_MATLAB:
+            contourTimbre =  load_timbre_features(contour_data_frame, options)
+        else:
             
-            if isnan(contourTimbre).any():
-                print 'contour for file {} has nans'.format(options.pitch_output_file)
-            
-            
-            saveContours(options, options.stepNotes, contours_bins_SAL, contours_saliences_SAL, contours_start_times_SAL, \
-                         contourTimbre, old_contour_data=contour_data_frame)
-        if Parameters.to_audio: # simply resynth to audio
-            options.contours_output_path = contours_output_path
-            contour_to_audio(contours_bins_SAL, contours_start_times_SAL, fftgram, timestamps_recording, options)
+            contourTimbre = compute_timbre_features(contours_bins_SAL, contours_start_times_SAL, fftgram, timestamps_recording, options)
+        
+        if isnan(contourTimbre).any():
+            print 'contour for file {} has nans'.format(options.pitch_output_file)
+        
+        
+        saveContours(options, options.stepNotes, contours_bins_SAL, contours_saliences_SAL, contours_start_times_SAL, \
+                     contourTimbre, old_contour_data=contour_data_frame)
+        
 
+
+
+def load_contour(track, options):
+    '''
+    utility function to load contour as pandas data frame and 
+    store as simple list of bins 
+    
+    ------------
+    Return: contours_bins_list of bins 
+    '''
+
+        
+    contour_data_frame, adat = get_data_files(track, meltype=1)
+    
+    contours_start_times_df, contours_bins_df, contours_saliences_SAL_df = contours_from_contour_data(contour_data_frame)
+    
+    contours_bins_SAL = []
+    contours_saliences_SAL = []
+    for (freqs, saliences) in zip(contours_bins_df.iterrows(), contours_saliences_SAL_df.iterrows()) :
+        freqs = freqs[1].values
+        freqs = freqs[~np.isnan(freqs)] # remove trailing nans
+        contours_bins_SAL.append(freqs)
+        
+        saliences = saliences[1].values
+        saliences = saliences[~np.isnan(saliences)] # remove trailing nans
+        contours_saliences_SAL.append(saliences)
+        
+    contours_start_times_SAL = contours_start_times_df.values[:,0]
+    return contour_data_frame, contours_bins_SAL, contours_saliences_SAL, contours_start_times_SAL
+
+
+def contours_to_audio(track, contours_output_path, options):
+    '''
+    convert contour to spectrum
+    take spectral part with f0 at contour 
+    '''
+        
+    contour_data_frame, contours_bins_SAL, contours_saliences_SAL, contours_start_times_SAL = load_contour(track, options)
+
+    wavfile_  = os.path.join(Parameters.iKala_URI, 'Wavfile', track + '.wav')
+    _, fftgram = calculateSpectrum(wavfile_, options.hopsizeInSamples)
+    timestamps_recording = np.arange(len(fftgram)) * float(options.hopsizeInSamples) / options.Fs
+    
+    options.contours_output_path = contours_output_path
+    options.track = track
+    spectogram_contours = contour_to_audio(contours_bins_SAL, contours_start_times_SAL, fftgram, timestamps_recording, options)
+    return     spectogram_contours
 
 def label_contours_and_store(output_contours_path, tracks, normalize):
     '''
@@ -159,17 +195,15 @@ def label_contours_and_store(output_contours_path, tracks, normalize):
 
 if __name__ == '__main__':
     
-    if len(sys.argv) != 6:
-        sys.exit('usage: {} <path-to-ikala> <create_contours=1, extracttimbre=2> <extractTimbre> <export-contours-to-audio> <path-features>'.format(sys.argv[0]))
+    if len(sys.argv) != 5:
+        sys.exit('usage: {} <path-to-ikala>  <path-contours> <create_contours=1, extracttimbre=2, contour_to_audio=3> <with_MatplotLib> '.format(sys.argv[0]))
     path_ = sys.argv[1]
     Parameters.iKala_URI = path_
     Parameters.set_paths()  
-    whichStep_ = int(sys.argv[2]) # 
+    whichStep_ = int(sys.argv[3]) #
+    Parameters.with_MATPLOTLIB =  int(sys.argv[4])
     
-    Parameters.extract_timbre  = int(sys.argv[3])
-    Parameters.to_audio = int(sys.argv[4])
-    featrues_path = sys.argv[5]
-    Parameters.contour_URI = Parameters.iKala_URI + featrues_path
+    Parameters.contour_URI = sys.argv[2]
     print Parameters.contour_URI
     args, options = parsing.parseOptions(sys.argv)
     
@@ -184,8 +218,20 @@ if __name__ == '__main__':
     
     elif whichStep_ == 2:
        
-
-        load_contour_and_extractTimbre_and_save(tracks, Parameters.contour_URI, options)
+        Parameters.extract_timbre = True
+        add_timbre_features_and_save(tracks, Parameters.contour_URI, options)
+    
+    elif whichStep_ == 3: # simply resynth to audio
+        for track in tracks:
+            spectogram_contours =  contours_to_audio(track, Parameters.contour_URI, options)
+            if Parameters.with_MATPLOTLIB:
+                from matplotlib import pyplot as plt
+                from matplotlib import cm
+                for contour_spec in spectogram_contours:
+                    plt.imshow(np.rot90(contour_spec[:,1:140]), interpolation = 'none', cmap=cm.coolwarm)
+                    ax = plt.gca()
+                    ax.grid(False)
+                    plt.show()
     
     dset_contour_dict_labeled, dset_annot_dict = label_contours_and_store(Parameters.contour_URI, tracks, normalize=False)
 
