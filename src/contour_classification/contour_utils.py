@@ -568,6 +568,10 @@ def getFeatureInfo(contourDF):
                 sys.exit('contour DataFrame does not have field first_time') 
     elif Parameters.useVV_for_classification and not Parameters.useMFCC_for_classification:
         idxEndFeatures = contourDF.columns.get_loc('timbre4')
+        
+    elif Parameters.use_fluct_for_classification: # one-dimensional
+        idxEndFeatures = contourDF.columns.get_loc('timbre0')
+            
     feats = contourDF.columns[idxStartFeatures:idxEndFeatures+1]
     return feats,idxStartFeatures,idxEndFeatures
 

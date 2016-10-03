@@ -121,6 +121,8 @@ def compute_contour_data(contours_bins, contours_saliences, contours_start_times
 
 def extend_contour_features(contour_data, extra_features):
         '''
+        extend the SALOMON features with added extra features. 
+        The extra features are inserted after SALOMON features and before other contour data from first_time (e.g. contour bin data)  
         Parameters
         ---------
          extra_features - DataFr with features

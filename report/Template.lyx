@@ -216,6 +216,7 @@ key "salamon2012melody"
  Each contour is then characterized by features of its pitch trajectory.
  Contours from predominant voice are selected, based on heuristics about
  the distribution of these features.
+ We will refer to this method as MELODIA.
  
 \begin_inset Note Note
 status open
@@ -231,11 +232,48 @@ add Mauch
 
 \begin_layout Standard
 
-\color red
+\color black
 Bittner et al.
  
-\color inherit
+\begin_inset CommandInset citation
+LatexCommand cite
+key "bittnermelody"
 
+\end_inset
+
+ proposed to replace such heuristic contour selection by a discriminative
+ classifier trained on the mentioned features.
+ The overall melody extraction accuracy did not improve when tested on the
+ MedleyDB dataset 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "bittner2014medleydb"
+
+\end_inset
+
+, but Bosch et al.
+ 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "Bosch"
+
+\end_inset
+
+ reported improvements on symphonic music, since the heuristic rules from
+ MELODIA were not appropriate for such data.
+
+\color inherit
+ In both works though the reported vocal false alarm rate is still relatively
+ high (in the order of 40).
+ 
+\end_layout
+
+\begin_layout Standard
+In general, the timbre of the voice within a contour changes smoothly and
+ is thus relatively coherent.
+ In both
+\color black
+ 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "bittnermelody"
@@ -243,21 +281,30 @@ key "bittnermelody"
 \end_inset
 
 
-\color red
- proposed to replace such heuristic contour selection by a discriminative
- classifier trained on the mentioned features.
- The overall melody extraction accuracy did not improve when tested on MedleyDB
- [ref], but Bosch et al.
- [] reported improvements on symphonic music, since the heuristic rules
- from [salamon] were not appropriate for such data.
+\color inherit
+ and 
+\color black
+
+\begin_inset CommandInset citation
+LatexCommand cite
+key "Bosch"
+
+\end_inset
+
 
 \color inherit
- In both works though the reported vocal false alarm rate is still relatively
- high (in the order of 40).
- Furthermore, the timbre of the voice in a contour changes smoothly and
- is thus relatively coherent.
- In both [] and [] this fact is not considered.
+ no timbre features are considered.
  
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Unlike them, Nadine's makes contour selection voicing TODO!, 
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -277,7 +324,7 @@ key "rocamora2007comparing"
 status open
 
 \begin_layout Plain Layout
-Vembu see more from mine and Nadine's voicing
+Vembu see more from my table
 \end_layout
 
 \end_inset
@@ -287,16 +334,26 @@ Recent classification approach was based on the observation that temporal
  
 \begin_inset CommandInset citation
 LatexCommand cite
-key "lehner2014reduction"
+key "lehner2015low"
 
 \end_inset
 
 .
  The authors did a careful selection of the parameters of both conventional
- static features and fluctuation ones.
+ static timbre features and such that describe timbral and pitch fluctuations.
  In particular, a baseline was improved by reducing voicing false alarm
  rate.
  
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Marxer...
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -309,7 +366,8 @@ key "bittnermelody"
 
 \end_inset
 
- by adding timbral features to the classifier.
+ by adding features to the classifier, which describe timbral temporal fluctuati
+ons.
  We investigated that one reason for the high false alarm of 
 \begin_inset CommandInset citation
 LatexCommand cite
@@ -319,10 +377,10 @@ key "bittnermelody"
 
  is that contours from background instruments, misclassified as voice, have
  salience statistics relatively similar to vocal contours.
- To address these, we exploit the features introduced by 
+ To address these, we exploit some of the features, introduced by 
 \begin_inset CommandInset citation
 LatexCommand cite
-key "lehner2014reduction"
+key "lehner2015low"
 
 \end_inset
 
@@ -373,24 +431,30 @@ METHOD
 \end_layout
 
 \begin_layout Standard
-A block diagram can be seen in Figure 1.
+An overview of the proposed method can be seen in Figure 1.
  First, candidate vocal pitch contours are extracted 
 \color black
 from the polyphonic mix along with a set of features describing the contour's
  pitch characteristics.
- Then contour timbre features are extracted from the isolated spectral component
-s with origin from either vocal or instrument.
- Next using both pitch and timbre features a classifier is trained to discrimina
-te the contour's source.
+ Then fluctuation features are extracted from the isolated harmonic partials
+ per contour, each with either vocal or instrumental origin.
+ Next using both the features, 
+\color inherit
+derived during contour creation, 
+\color black
+and the fluctuation features a classifier is trained to discriminate the
+ contour's source.
 
 \color red
  
 \color inherit
-Finally a single vocal melody line has to be decoded, because there might
- be regions, in which candidate contours are overlapping.
- We assume that singing voice appears only as 'lead instrument' (e.g.
- excluding backing voice), therefore final vocal regions are determined
- uniquely by the derived melodic line.
+The contours with low probability of being vocal are discarded.
+ Finally, a single vocal melody line is decoded by means of Viterbi algorithm,
+ because there might be regions, in which candidate contours are overlapping.
+ We assume that singing voice in the dataset occurs only as 'lead instrument'
+ (e.g.
+ that voice as accompaniment is not present), therefore final vocal regions
+ are determined uniquely by the derived melodic contour.
 \end_layout
 
 \begin_layout Standard
@@ -414,7 +478,13 @@ status collapsed
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
-Block diagram of the proposed system
+Overview of the proposed method.
+ Contour classification is based on a vector combined from the features,
+ derived during contour creation, and the fluctuation features.
+ The classifier yields a vocal probability for each contour (depicted with
+ different colour).
+ The contours with low probability are discarded and Viterbi decoding is
+ 
 \end_layout
 
 \end_inset
@@ -448,8 +518,8 @@ Contour creation
 
 \begin_layout Standard
 
-\color red
-The contour creation step is adopted from 
+\color black
+The contour creation step is adopted without modifications from MELODIA
 \begin_inset CommandInset citation
 LatexCommand cite
 key "salamon2012melody"
@@ -468,19 +538,58 @@ key "salamon2012melody"
 
 \color inherit
  The number of extracted contours depends on several parameters.
- We have varied 1) threshold factor of the salience of the highest peak
- in current frame 
-\begin_inset Formula $\tau_{+}$
-\end_inset
-
- and 2) the threshold degree of variation below the mean salience per recording
- 
+ We have varied one of them: the threshold on the extent of variation below
+ the mean salience per recording 
 \begin_inset Formula $\tau_{\sigma}$
 \end_inset
 
 .
- Created contours are assigned a number of 1-dimensional feature statistics,
- which we will refer to as features_SAL:
+ To obtain a higher recall of baseline we increased 
+\begin_inset Formula $\tau_{\sigma}=1.1$
+\end_inset
+
+ (default 
+\begin_inset Formula $\tau_{\sigma}=0.9$
+\end_inset
+
+, used in 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "bittnermelody"
+
+\end_inset
+
+).
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+peak frame threshold = 0.7 resulted in a huge amount of short non-vocal contours
+ and too few vocal contours.
+ 59497 (many false ones) and 429 (too few contours!!!), so we did not work
+ on this setting at all, as these are not good for classification
+\end_layout
+
+\end_inset
+
+
+\begin_inset Note Comment
+status collapsed
+
+\begin_layout Plain Layout
+to see number of class labels after labeling, do python ~/workspace/SourceFilter
+ContoursMelody/test/test_feature_weights.py <path_Contours>
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Finally, created contours are assigned a number of 1-dimensional feature
+ statistics, which we will refer to as features_SAL:
 \end_layout
 
 \begin_layout Itemize
@@ -507,14 +616,25 @@ discard decription of one param if it does not matter
 
 \begin_layout Itemize
 Vibrato (presence, rate and extent)
+\begin_inset Note Comment
+status open
+
+\begin_layout Plain Layout
+extract contours: see README.
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Subsection
-Extraction of timbre features
+Extraction of fluctuation features
 \end_layout
 
 \begin_layout Standard
-The features_SAL do not describe the timbre of the contour's source.
+The features_SAL do not represent the temporal variation of timbre of each
+ contour.
  A challenge of capturing well timbral dynamics for the classification of
  instruments in polyphonic music was found to be the isolation of individual
  instrumental spectra 
@@ -539,8 +659,15 @@ might have content from other inst
 
 \end_inset
 
- We then extract features from the interpolated harmonic spectral envelope
- instead of the polyphonic spectrum.
+ We then extract features from the interpolated harmonic spectrum 
+\begin_inset Formula $\bar{X_{t}}$
+\end_inset
+
+ instead of the polyphonic spectrum 
+\begin_inset Formula $X_{t}$
+\end_inset
+
+.
  Similarly, 
 \begin_inset CommandInset citation
 LatexCommand cite
@@ -549,6 +676,8 @@ key "ishwar2014pitch"
 \end_inset
 
  trained timbral features per contour, extracted from harmonic components.
+ The authors used features decribing both static timbre and temporal timbre
+ fluctuations.
 
 \color orange
  
@@ -588,8 +717,15 @@ Extraction of harmonic partials
 \end_layout
 
 \begin_layout Standard
-The harmonic sinusoidal model of [Serra] selects the spectral content, generated
- by a source with fundamental frequency.
+The harmonic sinusoidal model of 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "Serra89asystem"
+
+\end_inset
+
+ can represent the spectral content, generated by a source with goven fundamenta
+l frequency.
  The spectral peaks are computed at the location of harmonics 
 \begin_inset Formula $f^{n}\approx h_{n}f^{0}$
 \end_inset
@@ -600,8 +736,12 @@ The harmonic sinusoidal model of [Serra] selects the spectral content, generated
 
  is the harmonic index.
  Parabolic interpolation refines the exact frequency locations.
- We estimate a relatively huge number of harmonics (30), in order to exploit
- the instability of the singing voice at high harmonics as compared to other
+ We estimated 
+\begin_inset Formula $\bar{X_{t}}$
+\end_inset
+
+ with a relatively huge number of harmonics (30), in order to exploit the
+ instability of the singing voice at high harmonics as compared to other
  instruments.
 \end_layout
 
@@ -612,31 +752,41 @@ Vocal Variance
 \begin_layout Standard
 Singing voice can be distinguished for its relatively frequent timbre fluctuatio
 n: When singers vary their vocal tract, the variation of the spectral envelope
- is more pronounced than for most other instruments [
-\color orange
-ref
-\color inherit
-].
+ is more pronounced than for most other instruments 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "sundberg1990science"
+
+\end_inset
+
+.
  This is especially true when singers articulate actual words.
  To approximate the spectral shape, MFCCs have been widely utilized, because
  they relate well to changes of the vocal tract shape.
  Features that describe spectral dynamics over time proved to contribute
- to the SVD problem 
+ to the solution of the SVD problem 
 \begin_inset CommandInset citation
 LatexCommand cite
-key "rao2011context,lehner2014reduction"
+key "rao2011context,lehner2015low"
 
 \end_inset
 
 .
  Due to the application of Discre Cosine Transform as a last step of computing
- MFCCs, the first few coefficients represent the slow variations of spectrum
- [Rabiner and Huang].
+ MFCCs, the first few coefficients represent the slow variations of the
+ spectrum 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "rabiner1993fundamentals"
+
+\end_inset
+
+.
  We utilize the variance of the first 5 MFCCs adopting the frame and hop
  size of 800 and 200 ms, suggested by 
 \begin_inset CommandInset citation
 LatexCommand cite
-key "lehner2014reduction"
+key "lehner2015low"
 
 \end_inset
 
@@ -649,7 +799,46 @@ Fluctogram
 \end_layout
 
 \begin_layout Standard
-—
+The fluctogram is designed to detect sub-semitone fluctuations of the pitch
+ contour and its related harmonic partials 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "lehner2015low"
+
+\end_inset
+
+.
+ As a preprocessing step the spectrum is converted to a semitone cent scale
+ with resolution one bin per 10 cents.
+ The idea of the fluctogram is to compare the spectrum of a time frame 
+\begin_inset Formula $X_{t}$
+\end_inset
+
+ to the subsequent one 
+\begin_inset Formula $X_{t+1}$
+\end_inset
+
+ by cross-correlation.
+ The fluctuation (in bins) is given by the index of the maximum correlation
+ when 
+\begin_inset Formula $X_{t+1}$
+\end_inset
+
+ is shifted ±n bins.
+ To track only contours in a local spectral region, the spectrum is divided
+ into 17 2-octave-wide bands and fluctuation is calculated independently
+ for each band.
+ Since the harmonic spectrum 
+\begin_inset Formula $\bar{X_{t}}$
+\end_inset
+
+ represents the spectral content of one melodic source, we applied the cross-cor
+relation directly on cent-scale-warped 
+\begin_inset Formula $\bar{X_{t}}$
+\end_inset
+
+ for each contour with lowest bin at the contour's inital f0.
+ 
 \end_layout
 
 \begin_layout Subsection
@@ -676,19 +865,32 @@ key "bittnermelody"
  with ground-truth annotation.
  
 \color red
+
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+
+\color red
 should I write here formula of OA?
+\end_layout
+
+\end_inset
+
+
 \color orange
  
 \color inherit
 This is necessary as labeling each contour manually is very laborious task.
- We have though increased the proposed 
-\color orange
+ We have adopted the proposed 
+\color black
 threshold 
 \begin_inset Formula $\Theta$
 \end_inset
 
- because we want contours from background instruments to be included as
- positive examples, which is important for reducing false alarm rate.
+=0.5.
+
+\color orange
  
 \begin_inset Note Comment
 status open
@@ -696,7 +898,9 @@ status open
 \begin_layout Plain Layout
 
 \color orange
-So one class is main vocal melody and the other any non-main melody contours
+ because we want contours from background instruments to be included as
+ positive examples, which is important for reducing false alarm rate..
+ So one class is main vocal melody and the other any non-main melody contours
 \color inherit
 .
  
@@ -760,8 +964,8 @@ EXPERIMENTS
 
 \begin_layout Standard
 We present two experiments.
- First we train and evaluate our feature set on a dataset with relatively
- predominant singing voice.
+ First we train and evaluate our feature set on a dataset with predominant
+ singing voice.
  We experiment with different parameters of vocal variance and fluctogram,
  as well as different contour sets S as input.
  Then these parameters are kept unchanged for a comparison with other methods
@@ -792,54 +996,45 @@ Experiment 1: Adding timbre features to contour classification
 
 \begin_layout Standard
 
-\color orange
-iKala ...
-
+\color black
+First we ran experiments on 
 \color inherit
- proportion of vocal/non-vocal.
+the 
+\emph on
+iKala 
+\emph default
+dataset that have predominant singing voice, designed for vocal source separatio
+n 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "iKala"
+
+\end_inset
+
+.
+ It has a vocal proportion of around 90% of the audio with total length
+ of 125 minutes.
  
 \end_layout
 
 \begin_layout Standard
 The complete feature set consists of features_SAL, the median of the vocal
- variance (VV) fluctogram.
+ variance (VV) and median of the fluctogram variance.
+ Experiments were conducted with 
+\begin_inset Formula $\tau_{\sigma}=(0.9,1.1)$
+\end_inset
+
+, resulting in around 6000 vocal contours.
 \end_layout
 
 \begin_layout Standard
-Changing the contour salience parameters 
-\begin_inset Formula $\tau_{+}=0.9$
-\end_inset
-
- and 
-\begin_inset Formula $\tau_{\sigma}=0.9$
-\end_inset
-
-, used in 
-\begin_inset CommandInset citation
-LatexCommand cite
-key "bittnermelody"
-
-\end_inset
-
-, can increase the number of input contorus, e.g.
- recall of baseline.
- Setting 
-\begin_inset Formula $\tau_{+}=0.7$
-\end_inset
-
- and 
-\begin_inset Formula $\tau_{\sigma}=1.3$
-\end_inset
-
- resulted in a huge amount of short non-vocal contours, and thus vocal contours
- were underrepresented.
- We varied minimal contour duration, because the vocal variance does not
+We varied minimal contour duration, because the vocal variance does not
  make sense for too short contours.
  Also, to assure enough MFCC frames per contour, we decreased the MFCCs
  hopsize of 200 ms, proposed in 
 \begin_inset CommandInset citation
 LatexCommand cite
-key "lehner2014reduction"
+key "lehner2015low"
 
 \end_inset
 
@@ -867,16 +1062,16 @@ A list of feature importances is shown in Figure...
 \end_layout
 
 \begin_layout Standard
-\begin_inset Float figure
-wide false
+\begin_inset Float table
+wide true
 sideways false
 status collapsed
 
 \begin_layout Plain Layout
+\align center
 \begin_inset Tabular
-<lyxtabular version="3" rows="8" columns="8">
+<lyxtabular version="3" rows="8" columns="7">
 <features tabularvalignment="middle">
-<column alignment="center" valignment="top">
 <column alignment="center" valignment="top">
 <column alignment="center" valignment="top">
 <column alignment="center" valignment="top">
@@ -890,6 +1085,18 @@ status collapsed
 
 \begin_layout Plain Layout
 feature set
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $\tau_{\sigma}$
+\end_inset
+
+
 \end_layout
 
 \end_inset
@@ -930,24 +1137,6 @@ VF1
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-RPA
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-RCA
-\end_layout
-
-\end_inset
-</cell>
 <cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
@@ -963,7 +1152,16 @@ OA
 \begin_inset Text
 
 \begin_layout Plain Layout
-features_SAL 1.3 0.7
+features_SAL 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1.1
 \end_layout
 
 \end_inset
@@ -981,7 +1179,7 @@ features_SAL 1.3 0.7
 \begin_inset Text
 
 \begin_layout Plain Layout
-92.
+83.3
 \end_layout
 
 \end_inset
@@ -990,7 +1188,7 @@ features_SAL 1.3 0.7
 \begin_inset Text
 
 \begin_layout Plain Layout
-42.
+35.5
 \end_layout
 
 \end_inset
@@ -1000,24 +1198,6 @@ features_SAL 1.3 0.7
 
 \begin_layout Plain Layout
 
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-0.79
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-0.84
 \end_layout
 
 \end_inset
@@ -1026,7 +1206,7 @@ features_SAL 1.3 0.7
 \begin_inset Text
 
 \begin_layout Plain Layout
-0.73
+70.7
 \end_layout
 
 \end_inset
@@ -1038,6 +1218,15 @@ features_SAL 1.3 0.7
 
 \begin_layout Plain Layout
 +VV (300_50_300)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
 \end_layout
 
 \end_inset
@@ -1078,24 +1267,6 @@ features_SAL 1.3 0.7
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
@@ -1111,7 +1282,16 @@ features_SAL 1.3 0.7
 \begin_inset Text
 
 \begin_layout Plain Layout
-features_SAL
+features_SAL 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.9
 \end_layout
 
 \end_inset
@@ -1152,24 +1332,6 @@ features_SAL
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-76.5
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-81.4
-\end_layout
-
-\end_inset
-</cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
@@ -1186,6 +1348,15 @@ features_SAL
 
 \begin_layout Plain Layout
 +VV (300_100_300)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
 \end_layout
 
 \end_inset
@@ -1221,24 +1392,6 @@ features_SAL
 \begin_inset Text
 
 \begin_layout Plain Layout
-72.1
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
 
 \end_layout
 
@@ -1264,7 +1417,16 @@ features_SAL
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" usebox="none">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell multirow="4" alignment="center" valignment="top" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -1295,24 +1457,6 @@ features_SAL
 \begin_inset Text
 
 \begin_layout Plain Layout
-70.9
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
 
 \end_layout
 
@@ -1333,16 +1477,7 @@ features_SAL
 \begin_inset Text
 
 \begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
++fluct
 \end_layout
 
 \end_inset
@@ -1356,7 +1491,7 @@ features_SAL
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+<cell multirow="4" alignment="center" valignment="top" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -1369,7 +1504,7 @@ features_SAL
 \begin_inset Text
 
 \begin_layout Plain Layout
-
+89.2
 \end_layout
 
 \end_inset
@@ -1378,7 +1513,7 @@ features_SAL
 \begin_inset Text
 
 \begin_layout Plain Layout
-
+40.5
 \end_layout
 
 \end_inset
@@ -1396,7 +1531,7 @@ features_SAL
 \begin_inset Text
 
 \begin_layout Plain Layout
-
+72.0
 \end_layout
 
 \end_inset
@@ -1407,16 +1542,7 @@ features_SAL
 \begin_inset Text
 
 \begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
++fluct+VV (300_100_300)
 \end_layout
 
 \end_inset
@@ -1430,7 +1556,7 @@ features_SAL
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+<cell multirow="4" alignment="center" valignment="top" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -1510,7 +1636,7 @@ name "Results_diff_feature_params"
 \end_layout
 
 \begin_layout Standard
-\begin_inset Float figure
+\begin_inset Float table
 wide false
 sideways false
 status collapsed
@@ -1557,14 +1683,42 @@ Experiment 2: Comparison with related approaches
 
 \begin_layout Standard
 For the sake of comparison with previous work on contour classification
- and voicing, we evaluated our approach on the vocal part of medleyDB [].
+ and voicing, we evaluated our approach on the vocal part of 
+\emph on
+medleyDB
+\emph default
+ 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "bittner2014medleydb"
+
+\end_inset
+
+.
 
 \color red
  
+\emph on
 \color black
-MedleyDB presents a higher diversity of singers and genres, and more realistic
- data in comparison to iKala, since there are many full tracks with large
- unvoiced portions.
+MedleyDB
+\emph default
+ presents a higher diversity of singers and genres, and more realistic data
+ in comparison to 
+\emph on
+iKala
+\emph default
+, since there are many full tracks with large unvoiced portions 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+
+\color black
+TODO: prpoportion of vocal.
+\end_layout
+
+\end_inset
+
  
 \begin_inset Note Note
 status open
@@ -1596,7 +1750,7 @@ TODO: reproduce Bernhards code on iKala.
 
 \begin_layout Standard
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
 \begin_inset Float table

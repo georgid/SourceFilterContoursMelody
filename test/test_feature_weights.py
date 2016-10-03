@@ -27,7 +27,7 @@ def printLabels(track_list):
     '''
 #     dset_contour_dict_labeled, dset_annot_dict = label_contours_and_store(Parameters.contour_URI, track_list, normalize=False)
     
-    feature1 = 'timbre1'
+    feature1 = 'timbre2'
     
     len_label = [0,0]
     len_feature_diff_zero = [0,0]
@@ -52,50 +52,6 @@ def printLabels(track_list):
 
 
 
-
-def plot_2features_spaces(track_list):
-    '''
-    contour_data gets very big, so better run with 
-    run with 
-    - what is 2-feature distribution plot 
-    '''    ##### plot only melody contours
-    
-    import contour_classification.experiment_utils as eu
-#   make sure this is run in advance:
-#     track_list = [test_track]
-#    
-    from sys import getsizeof
-    contour_data, adat = get_data_files(track_list[0],normalize=False, meltype=1)
-    for i, track in enumerate(track_list):
-            curr_contour_data, adat = get_data_files(track, normalize=False, meltype=1)
-            contour_data = contour_data.append(curr_contour_data, ignore_index=True)
-#             print getsizeof(contour_data)
-#             if i==21:   break
-
-   
-#     for track in track_list:
-#         contour_data = dset_contour_dict_labeled[track]
-#     for column_name in  contour_data.columns.values:
-#         print column_name
-    nonvocal_contour_data = contour_data[contour_data['labels'] == 0]
-    
-#     plt.scatter(contour_data['salience mean'], contour_data['pitch std'], marker='o', c=contour_data['labels']) #    
-#     plt.legend()
-#     plt.show()
-    
-    feature2 = 'timbre4' 
-    feature1= 'timbre3'
-    
-            
-#         plt.scatter(contour_data['timbre1'], contour_data['timbre2'], marker='o', c=contour_data['labels'])
-#         plt.show()
-#         plt.scatter(contour_data['timbre2'], contour_data['timbre3'], marker='o', c=contour_data['labels'])
-#         plt.show()
-#     plt.scatter(contour_data['duration'], contour_data['pitch std'], marker='o', c=contour_data['labels'])
-#     plt.show()
-    
-    plt.scatter(nonvocal_contour_data[feature1], nonvocal_contour_data[feature2], marker='o', c=nonvocal_contour_data['labels'])
-    plt.show()
 
 
 def plot_all_contours(tracks):
@@ -127,22 +83,11 @@ def plot_all_contours(tracks):
 
 
 if __name__ == '__main__':
-#     plot_2_dim_chart()
     
     
     track_list = Parameters.tracks
 #     track_list = [Parameters.test_track]
 #     plot_all_contours(track_list)
-   
-    
-    #####################################
-    
-#     dir_tracks = os.path.join( os.path.dirname(os.path.realpath(__file__)) , '../src/contour_classification/melody_trackids_iKala_subset.json' )
-
-#     with open(dir_tracks, 'r') as fhandle:
-#             track_list = json.load(fhandle)['tracks']
-
-#     plot_2features_spaces(track_list)
 
 
 

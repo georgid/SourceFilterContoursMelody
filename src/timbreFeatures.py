@@ -106,9 +106,10 @@ def compute_timbre_features(contours_bins_SAL, contours_start_times_SAL, fftgram
                 times_contour, idx_start = get_ts_contour(contours_f0[i], contours_start_times_SAL[i], times_recording, options)
            
                 
-                  
-#                 timbre_feature, audio = extract_vocal_var(fftgram, idx_start, contours_f0[i],  Parameters.dim_timbre,   options)
-                timbre_feature = extact_pseudo_fluctogram(contours_bins_SAL[i], options)
+#                 if Parameters.useVV_for_classification:
+#                     timbre_feature, audio = extract_vocal_var(fftgram, idx_start, contours_f0[i],  Parameters.dim_timbre,   options)
+                if Parameters.use_fluct_for_classification:
+                    timbre_feature = extact_pseudo_fluctogram(contours_bins_SAL[i], options)
                 
                 # take median over features
                 
