@@ -22,7 +22,7 @@ def calculateSpectrum(filename, hopsizeFrames):
     run_FFT = FFT(size=frameSize_block * 4)
     
     pool = Pool();
-    
+    spectogram = []
     fft_array = []
     
     # Now we are ready to start processing.
@@ -38,9 +38,11 @@ def calculateSpectrum(filename, hopsizeFrames):
         spectrum = run_spectrum(frame)
         fft = run_FFT(frame)
         pool.add('spectrum', spectrum)
+        spectogram.append(spectrum)
         fft_array.append( fft) 
     
-    return pool['spectrum'], fft_array
+#     return pool['spectrum'], fft_array
+    return spectogram, fft_array
 
     
 def calculateSF(spectogram, hopSizeFrames):

@@ -8,8 +8,11 @@ visualize
 
 import sys
 import os
-from src.timbreFeatures import get_ts_contour, extract_vocal_var
+import essentia.standard
 sys.path.append(os.path.join(os.path.dirname(__file__), '../src'))
+from timbreFeatures import get_ts_contour, extract_vocal_var,\
+    compute_timbre_features, load_timbre_features
+from main_contour_extraction import load_contour
 from timbreFeatures import compute_harmonic_magnitudes, compute_harmonic_magnitudes
 import json
 from HarmonicSummationSF import calculateSpectrum
@@ -27,22 +30,30 @@ from Parameters import Parameters
 
 
 
-def test_compute_harmonic_ampl_2(track, options):
+def test_vocal_variance(track, options):
     '''
     test computing of harmonic amplitudes with essentia
     load the salience bins, saved as pandas dataframes. extract complex fft spectrum and compute harmonic amplitudes  
     If they have already the timbre features, they are recomputed here.  
     '''
     
-    
-        
-    timestamps_recording = np.arange(len(fftgram)) * float(options.hopsizeInSamples) / options.Fs
-    _, fftgram = calculateSpectrum(track + '.wav', options.hopsizeInSamples)
-        
     contour_data_frame, adat = get_data_files(track, meltype=1)
+    contour_output_path = '/home/georgid/Documents/iKala/Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-0.9_pFTh-0.9_tC-100_mD-200_vxTol-0.2_LEH_300_100_300_5_1_5/'
+    
+    path_ = contour_output_path + Parameters.features_MATLAB_URI
+    contours_vvs_matlab =  load_timbre_features(contour_data_frame, path_, track )
+    
+    
+    wav_URI = os.path.join(os.path.dirname(__file__), track + '.wav')
+    print wav_URI
+    _, fftgram = calculateSpectrum(wav_URI , options.hopsizeInSamples)
+    timestamps_recording = np.arange(len(fftgram)) * float(options.hopsizeInSamples) / options.Fs
+        
     c_times, c_freqs, _ = contours_from_contour_data(contour_data_frame)
     
-    for (times, freqs) in zip(c_times.iterrows(), c_freqs.iterrows()): # for each contour
+
+    
+    for i, (times, freqs) in enumerate(zip(c_times.iterrows(), c_freqs.iterrows()) ): # for each contour
         row_idx = times[0]
         times = times[1].values
         freqs = freqs[1].values
@@ -56,16 +67,27 @@ def test_compute_harmonic_ampl_2(track, options):
 
         times_contour, idx_start = get_ts_contour(freqs, times[0], timestamps_recording, options)
         print 'contour len: {}'.format(times[-1] - times[0])
-        vv_array = extract_vocal_var(fftgram, idx_start, freqs, Parameters.dim_timbre,    options)                
         
+        vv_array, audio = extract_vocal_var(fftgram, idx_start, freqs, Parameters.dim_vv,    options)  
+#         contourTimbre = compute_timbre_features(contours_bins_SAL, contours_start_times_SAL, fftgram, timestamps_recording, options)
+
+
 #         save_harmonics(times, hfreqs, test_track)
         # plot spectrogram per contour
-#         pyplot.imshow(vv_array)
-#         pyplot.show()
-        return contour_data_frame, vv_array
+        pyplot.imshow(vv_array, interpolation='none')
+        pyplot.show()
         
 
-
+        ########################### matlab 
+        
+        contour_URI = os.path.join(contour_output_path,  track + '_' + str(i)) 
+            
+        loader = essentia.standard.MonoLoader(filename = contour_URI + '.wav')
+        audio = loader()    
+        print 'len : {}'.format(len(audio)/44100.0)
+            
+        pyplot.imshow(contours_vvs_matlab[i], interpolation='none')
+        pyplot.show()
 
     
 def save_harmonics(times_contour, hfreqs, outFile_name):
@@ -110,8 +132,12 @@ def writeCsv(fileURI, list_, withListOfRows=1):
 
 if __name__ == '__main__':
     
+    track = Parameters.test_track
     args, options = parsing.parseOptions(sys.argv)
-    test_compute_harmonic_ampl_2(options)
     
-#     test_vocal_variance(sys.argv)
+    test_vocal_variance(track, options)
+    
+    
+
+    
     

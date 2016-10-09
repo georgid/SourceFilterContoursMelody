@@ -25,7 +25,7 @@ class ShuffleLabelsOut(ShuffleSplit):
     random_state : int or RandomState
     '''
 
-    def __init__(self, y, n_iter=2, test_size=0.2, train_size=None,
+    def __init__(self, y, n_iter=5, test_size=0.2, train_size=None,
                  random_state=None):
 
         classes, y_indices = np.unique(y, return_inverse=True)

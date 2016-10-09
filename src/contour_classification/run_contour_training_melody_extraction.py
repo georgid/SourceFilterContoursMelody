@@ -146,7 +146,7 @@ if __name__ == '__main__':
     
     
     if len(sys.argv) != 5:
-        sys.exit('usage: {} <path-to-ikala/path-features> <use_SAL_features_for_training> <use_MFCC_features_for_training> <use_VV_features_for_training>'.format(sys.argv[0]))
+        sys.exit('usage: {} <path-to-ikala/path-features> <use_SAL_features_for_training>  <use_VV_features_for_training>  <use_fluct_for_training>'.format(sys.argv[0]))
     
     # plt.ion()
     
@@ -171,8 +171,8 @@ if __name__ == '__main__':
     tracks  = Parameters.tracks
     Parameters.contour_URI = sys.argv[1]
     Parameters.use_SAL_for_classification = int(sys.argv[2])
-    Parameters.useMFCC_for_classification = int(sys.argv[3])
-    Parameters.useVV_for_classification = int(sys.argv[4])
+    Parameters.useVV_for_classification = int(sys.argv[3])
+    Parameters.use_fluct_for_classification = int(sys.argv[4])
      
 #     dset_contour_dict_labeled, dset_annot_dict = label_contours_and_store(Parameters.contour_URI, Parameters.tracks, normalize=True)
     dset_contour_dict_labeled = {}

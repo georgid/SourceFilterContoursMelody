@@ -181,7 +181,7 @@ def score_melodies(mel_output_dict, test_annot_dict):
                                                       est.index.values,
                                                       est.values)
             recall = melody_scores_mir_eval['Voicing Recall']
-            precision = 1.0 - melody_scores_mir_eval['Voicing False Alarm']
+            precision = melody_scores_mir_eval['Voicing Precision']
             melody_scores_mir_eval['VF1'] = 2 * recall * precision / (recall + precision)
             melody_scores[key] = melody_scores_mir_eval
         else:

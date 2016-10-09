@@ -12,8 +12,10 @@ subset = 'v'
 class   Parameters(object):
     
     with_MATPLOTLIB = True
-    datasetIKala  = True
-    
+    datasetIKala  = False
+    medleyDb = False
+    for_makam = True
+        
     iKala_URI = '/home/georgid/Documents/iKala/'
     medleyDbURI =  '/home/georgid/Documents/medleyDB/'
     iKala_annotation_URI = iKala_URI + "/PitchLabel/"
@@ -24,33 +26,33 @@ class   Parameters(object):
     
     OLAP_THRESH = 0.5 
     
+    dim_timbre = 6 # 5 vocal var + 1 fluctogram
+    dim_vv = 5
     
     useMFCC_for_classification = False
     useVV_for_classification = False
     use_SAL_for_classification = True
-    read_features_from_MATLAB = False # load .arff files per contour extracted with Lehner's code matlab
     use_fluct_for_classification = True
-    
-    if use_fluct_for_classification:
-        dim_timbre = 1
-    
-    if useMFCC_for_classification and not useVV_for_classification:
-        features_MATLAB_URI = 'SVD2015/MFCC_29_30_0_0.5_0t/300_200_300/'
-        dim_timbre = 30 # MFCC from B. Lehner
-    
-    if useMFCC_for_classification and useVV_for_classification:
-        features_MATLAB_URI = 'SVD2015/'
-        dim_timbre = 35 # vocal var + MFCC  from B. Lehner
-    
-    if not useMFCC_for_classification and useVV_for_classification:
-        features_MATLAB_URI = '/SVD2015/varMFCC_29_30_0_0.5_0t/300_50_300/5_1_5/'
 
-        dim_timbre = 5 # vocal var
+    read_features_from_MATLAB = True # load .arff files per contour extracted with Lehner's code matlab
     
 
-    extract_timbre = 0
+    
+#     if useMFCC_for_classification and not useVV_for_classification:
+#         features_MATLAB_URI = 'SVD2015/MFCC_29_30_0_0.5_0t/300_200_300/'
+#     
+#     if useMFCC_for_classification and useVV_for_classification:
+#         features_MATLAB_URI = 'SVD2015/'
+#     
+#     if not useMFCC_for_classification and useVV_for_classification:
+    features_MATLAB_URI = '/SVD2015/varMFCC_29_30_0_0.5_0t/300_100_300/5_1_5/'
+
+    
+
+    extract_timbre = 1
     
     to_audio = False
+    
     
     if datasetIKala:
         
@@ -67,7 +69,10 @@ class   Parameters(object):
 
         with open(dir_tracks, 'r') as fhandle:
             track_list = json.load(fhandle)
-    else: # medley DB
+        tracks = track_list['tracks']
+    elif for_makam:
+        tracks = ['ba1dc923-9b0e-4b6b-a306-346bd5438d35']
+    elif medleyDb: # medley DB
         
         contour_URI = medleyDbURI + '/Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-0.9_pFTh-0.9_tC-50_mD-100_vxTol-0.2/'
         contour_URI = medleyDbURI + '/Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-1.3_pFTh-0.9_tC-50_mD-100_vxTol-0.2/'
@@ -89,7 +94,7 @@ class   Parameters(object):
                 with open(dir_tracks, 'r') as fhandle:
                     track_list = json.load(fhandle)
             
-    tracks = track_list['tracks']   
+        tracks = track_list['tracks']   
     
     test_track = '10161_chorus'
     

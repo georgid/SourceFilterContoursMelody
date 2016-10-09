@@ -66,41 +66,53 @@ def create_contours_and_store(tracks, contours_output_path):
         times, pitch = MEFromSF(timesHSSF, HSSF, fftgram, options)
         
 
-def add_timbre_features_and_save(tracks, contours_output_path, options):
+def add_timbre_features_and_save(track, contours_output_path, options):
     
     '''
     toAudio - if True store resynthesized audio for each contour and return without contour extraction
     else: extract Timbre and save
     '''
     
-    for track in tracks:
+   
         
-        contour_data_frame, contours_bins_SAL, contours_saliences_SAL, contours_start_times_SAL = load_contour(track, options)
+    contour_data_frame, contours_bins_SAL, contours_saliences_SAL, contours_start_times_SAL = load_contour(track, options)
 
-        wavfile_  = os.path.join(Parameters.iKala_URI, 'Wavfile', track + '.wav')
-        _, fftgram = calculateSpectrum(wavfile_, options.hopsizeInSamples)
-        timestamps_recording = np.arange(len(fftgram)) * float(options.hopsizeInSamples) / options.Fs
+    wavfile_  = os.path.join(Parameters.iKala_URI, 'Wavfile', track + '.wav')
+    _, fftgram = calculateSpectrum(wavfile_, options.hopsizeInSamples)
+    timestamps_recording = np.arange(len(fftgram)) * float(options.hopsizeInSamples) / options.Fs
+    
+    
+    options.saveContours = True
+    options.track = track
+    
+    options.pitch_output_file    = os.path.join(contours_output_path, track)
+    
+
+    
+    options.contours_output_path = contours_output_path
+    contourTimbre = compute_timbre_features(contours_bins_SAL, contours_start_times_SAL, fftgram, timestamps_recording, options)
+    
+    if Parameters.read_features_from_MATLAB:
+        path_ = options.contours_output_path + Parameters.features_MATLAB_URI
+        contours_vvs_matlab =  load_timbre_features(contour_data_frame, path_, track)
+        
+        #  take median  and put in  numpoy array 
+        contourTimbre_matlab_vv =  np.zeros([len(contours_vvs_matlab), Parameters.dim_vv]) # compute timbral features
+        for i, contour_vvs in enumerate(contours_vvs_matlab):
+            median_timbre_features = np.median(contour_vvs, axis = 0)
+            contourTimbre[i,:] = median_timbre_features
         
         
-        options.saveContours = True
-        options.track = track
         
-        options.pitch_output_file    = os.path.join(contours_output_path, track)
+        contourTimbre[:, 0:contourTimbre_matlab_vv.shape[1]] = contourTimbre_matlab_vv
         
     
-        options.contours_output_path = contours_output_path
-        if Parameters.read_features_from_MATLAB:
-            contourTimbre =  load_timbre_features(contour_data_frame, options)
-        else:
-            
-            contourTimbre = compute_timbre_features(contours_bins_SAL, contours_start_times_SAL, fftgram, timestamps_recording, options)
-        
-        if isnan(contourTimbre).any():
-            print 'contour for file {} has nans'.format(options.pitch_output_file)
-        
-        
-        saveContours(options, options.stepNotes, contours_bins_SAL, contours_saliences_SAL, contours_start_times_SAL, \
-                     contourTimbre, old_contour_data=contour_data_frame)
+    if isnan(contourTimbre).any():
+        print 'contour for file {} has nans'.format(options.pitch_output_file)
+    
+    
+    saveContours(options, options.stepNotes, contours_bins_SAL, contours_saliences_SAL, contours_start_times_SAL, \
+                 contourTimbre, old_contour_data=contour_data_frame)
         
 
 
@@ -153,7 +165,9 @@ def contours_to_audio(track, contours_output_path, options):
 
 def label_contours_and_store(output_contours_path, tracks, normalize):
     '''
-    overlap all contours with ground truth and serialize to pandas csv
+    overlap all contours with ground truth and serialize to pandas pickle
+    added as a separate function to be able to run statistics of labels 
+    before contour training
     '''
     mel_type = 1
     #  for iKala
@@ -181,17 +195,6 @@ def label_contours_and_store(output_contours_path, tracks, normalize):
     return dset_contour_dict_labeled, dset_annot_dict
 
 
-# def load_labeled_contours(tracks, contours_output_path):
-#     # import labeled contours
-#     dset_annot_dict = {}
-#     dset_contour_dict = {}
-#     for test_track in tracks:
-#         filename = os.path.join(contours_output_path, test_track + '.ctr.anno')
-#         dset_annot_dict[test_track] = pd.read_csv(filename, sep='\t', encoding='utf-8')
-#         filename = os.path.join(contours_output_path, test_track + '.ctr.ovrl')
-#         dset_contour_dict[test_track] = pd.read_csv(filename, sep='\t', encoding='utf-8')
-#     
-#     return dset_contour_dict, dset_annot_dict
 
 if __name__ == '__main__':
     
@@ -219,12 +222,13 @@ if __name__ == '__main__':
     elif whichStep_ == 2:
        
         Parameters.extract_timbre = True
-        add_timbre_features_and_save(tracks, Parameters.contour_URI, options)
+        for track in tracks:
+            add_timbre_features_and_save(track, Parameters.contour_URI, options)
     
     elif whichStep_ == 3: # simply resynth to audio
         for track in tracks:
             spectogram_contours =  contours_to_audio(track, Parameters.contour_URI, options)
-            if Parameters.with_MATPLOTLIB:
+            if Parameters.with_MATPLOTLIB: # visualize spectogram with contours 
                 from matplotlib import pyplot as plt
                 from matplotlib import cm
                 for contour_spec in spectogram_contours:

@@ -36,7 +36,7 @@ def create_splits(test_size=0.15):
     keys = []
 
         
-    if Parameters.datasetIKala:
+    if Parameters.datasetIKala or Parameters.for_makam:
         track_list = Parameters.tracks
         mdb_files = [] 
         for trackid in track_list:
@@ -83,7 +83,7 @@ def get_data_files(test_track, normalize=False, meltype=1):
     
         
     # for iKala. edited by georgid ---------------------------------------
-    if Parameters.datasetIKala:
+    if Parameters.datasetIKala or Parameters.for_makam:
         annot_path = os.path.join(Parameters.iKala_annotation_URI)
     
         contour_suffix =  Parameters.CONTOUR_EXTENSION

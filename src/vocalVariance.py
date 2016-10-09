@@ -22,9 +22,9 @@ from essentia import Pool
 num_mfccs = 29
 numberBands = 30
 highFrequencyBound = 11025
-frameSize_block = 0.8 # 
-hopSize_block = 0.2 # s
-varianceWindow = 1.0 # variance on the one side in seconds
+frameSize_block = 0.7 # 
+hopSize_block = 0.1 # s
+varianceWindow = 5 * hopSize_block  # variance on the one side in seconds
 plotting = False
 # plotting = True
 

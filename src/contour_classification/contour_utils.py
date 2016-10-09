@@ -42,6 +42,8 @@ def load_contour_data(fpath, normalize=True):
     contour_data : DataFrame
         Pandas data frame with all contour data.
     """
+    if not os.path.isfile(fpath):
+       print 'file {} does not exist'.format(fpath)
     try:
         contour_data = pd.read_csv(fpath, header=None, index_col=None,
                                    delimiter=',').astype(float)
@@ -53,9 +55,11 @@ def load_contour_data(fpath, normalize=True):
                          'vibrato', 'vib rate', 'vib extent', 'vib coverage']
         contour_data.columns = headers
     except:
-        contour_data = loadpickle(fpath)
+        try:
+            contour_data = loadpickle(fpath)
         # trying to load with pickle
-
+        except:
+            print 'pickle_file {} not loaded correclty'.format(fpath)
     # Check if there is any column with all nans... it should not be considered
     df = contour_data.isnull().all()
     indices_Nan_columns = np.where(df)[0]
@@ -203,6 +207,7 @@ def load_annotation(fpath):
     #### for iKala edited by georgi
     if Parameters.datasetIKala:
         framesPerSec = 31.25
+        
         timestamps = np.arange(0.5,len(annot_data),1) / framesPerSec
         annot_data.insert(0, 'time', timestamps)
         annot_data.columns = ['time', 'f0']
@@ -212,9 +217,19 @@ def load_annotation(fpath):
 
         hz_f0 = 440.0 * (2.0 ** ((annot_data['f0'] - 69.0)/12.0))        
         annot_data['f0'] = hz_f0
-    # Add column with annotation values in cents
-    annot_data['cents'] = 1200.0*np.log2(annot_data['f0']/55.0)
+        # Add column with annotation values in cents
+        annot_data['cents'] = 1200.0*np.log2(annot_data['f0']/55.0)
+    
+    elif Parameters.for_makam:
+         separator = ','
 
+         annot_data = pd.read_table(fpath, parse_dates=True,
+                         index_col=False,header=None,sep=separator)
+         annot_data.columns = ['time', 'f0']
+         annot_data['cents'] = 1200.0*np.log2(annot_data['f0']/55.0)
+    
+    print 'annotation...'
+    print annot_data
     return annot_data
 
 
@@ -550,7 +565,7 @@ def getFeatureInfo_old(contourDF):
 
 def getFeatureInfo(contourDF):
     '''
-    always use SAL, plus VV only or plus all
+    always use SAL, plus some timbral
     '''
     if 'duration' in contourDF.columns:
         idxStartFeatures = contourDF.columns.get_loc('duration')
@@ -559,20 +574,32 @@ def getFeatureInfo(contourDF):
     
 #     idxEndFeatures = contourDF.columns.get_loc('timbre0') - 1
     idxEndFeatures = 11
-    
-    if Parameters.useMFCC_for_classification and Parameters.useVV_for_classification:
-        if 'first_time' in contourDF.columns:
-                idxEndFeatures = contourDF.columns.get_loc('first_time')-1
-                idxStartFeatures = contourDF.columns.get_loc('timbre5')
-        else:
-                sys.exit('contour DataFrame does not have field first_time') 
-    elif Parameters.useVV_for_classification and not Parameters.useMFCC_for_classification:
-        idxEndFeatures = contourDF.columns.get_loc('timbre4')
+    indices = range(idxStartFeatures,idxEndFeatures+1)
+#     if Parameters.useMFCC_for_classification and Parameters.useVV_for_classification:
+#         if 'first_time' in contourDF.columns:
+#                 idxEndFeatures = contourDF.columns.get_loc('first_time')-1
+#                 idxStartFeatures = contourDF.columns.get_loc('timbre5')
+#         else:
+#                 sys.exit('contour DataFrame does not have field first_time') 
+#     elif Parameters.useVV_for_classification and not Parameters.useMFCC_for_classification:
+#         idxEndFeatures = contourDF.columns.get_loc('timbre4')
         
-    elif Parameters.use_fluct_for_classification: # one-dimensional
-        idxEndFeatures = contourDF.columns.get_loc('timbre0')
-            
-    feats = contourDF.columns[idxStartFeatures:idxEndFeatures+1]
+    if not Parameters.useVV_for_classification and  Parameters.use_fluct_for_classification:
+        print "WARNING: there is a problem with idxEndFeatures in classification. use only fluct in a separate folder _f instead"
+        idx_fluct = contourDF.columns.get_loc('timbre5')
+        indices = range(idxStartFeatures,idxEndFeatures+1) + [idx_fluct]
+    
+    if  Parameters.useVV_for_classification and not Parameters.use_fluct_for_classification: 
+        idxEndFeatures = contourDF.columns.get_loc('timbre4')
+        indices = range(idxStartFeatures,idxEndFeatures+1)
+
+    if  Parameters.useVV_for_classification and  Parameters.use_fluct_for_classification: 
+        idxEndFeatures = contourDF.columns.get_loc('timbre5')
+        indices = range(idxStartFeatures,idxEndFeatures+1)
+        
+        
+        
+    feats = contourDF.columns[indices]
     return feats,idxStartFeatures,idxEndFeatures
 
 

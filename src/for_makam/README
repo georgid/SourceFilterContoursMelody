@@ -1,0 +1,4 @@
+
+python ~/workspace/SourceFilterContoursMelody/src/for_makam/intersect_vocal_and_pitch.py ~/Documents/makam_vocal/Wavfile ~/Documents/makam_vocal/PitchLabel
+
+python ~/workspace/SourceFilterContoursMelody/src/main_contour_extraction.py ~/Documents/makam_vocal/ ~/Documents/makam_vocal/contours/  1 0

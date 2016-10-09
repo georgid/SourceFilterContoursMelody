@@ -8,22 +8,23 @@ import numpy as np
 from HarmonicSummationSF import calculateSpectrum
 from Parameters import Parameters
 from fluctogram import extact_pseudo_fluctogram
+import sys
+import os
 if Parameters.extract_timbre:
     from essentia.standard import HarmonicModelAnal
+    sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../smstools/software/models/'))
+    sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../smstools/workspace/'))
+    import sineModel as SM
 from essentia.standard import *
 import essentia.streaming as es
-import sys
 from essentia import Pool
-import os
 import numpy
 from vocalVariance import extractMFCCs, compute_var_mfccs
 import traceback
 if Parameters.with_MATPLOTLIB:
-    from matplotlib import pyplot
+    from matplotlib import pyplot as plt
 import csv
 
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../smstools/software/models/'))
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../smstools/workspace/'))
 
 try:
     from harmonicModel_function import resynthesize
@@ -106,14 +107,16 @@ def compute_timbre_features(contours_bins_SAL, contours_start_times_SAL, fftgram
                 times_contour, idx_start = get_ts_contour(contours_f0[i], contours_start_times_SAL[i], times_recording, options)
            
                 
-#                 if Parameters.useVV_for_classification:
-#                     timbre_feature, audio = extract_vocal_var(fftgram, idx_start, contours_f0[i],  Parameters.dim_timbre,   options)
-                if Parameters.use_fluct_for_classification:
-                    timbre_feature = extact_pseudo_fluctogram(contours_bins_SAL[i], options)
+                vv, audio = extract_vocal_var(fftgram, idx_start, contours_f0[i],  Parameters.dim_vv,   options)
                 
                 # take median over features
+                median_vv = numpy.median(vv, axis = 0)
                 
-                median_timbre_features = numpy.median(timbre_feature, axis = 0)
+                fluct = extact_pseudo_fluctogram(contours_bins_SAL[i], options)
+                median_fluct = [numpy.median(vv)]
+                
+                
+                median_timbre_features = np.concatenate((median_vv, median_fluct), axis=0)
                 contourTimbre[i,:] = median_timbre_features
     
 #     if (options.plotting):
@@ -122,17 +125,24 @@ def compute_timbre_features(contours_bins_SAL, contours_start_times_SAL, fftgram
 
     return contourTimbre
 
-def load_timbre_features(contour_data_frame, options):
+def load_timbre_features(contour_data_frame, path_, track):
     '''
     load timbre features externally computed in MATLAB
+    NOTE: load only vocal variance ( vv ) for now
     '''
+    
     NContours = contour_data_frame.shape[0]
-    contourTimbre =  np.zeros([NContours, Parameters.dim_timbre]) # compute timbral features
+    
+   
+    contour_vvs = []
     for i in range(NContours):
         # load SVD-lenher extracted
-        contour_URI = os.path.join(options.contours_output_path, Parameters.features_MATLAB_URI, options.track + '_' + str(i)) 
-        timbre_feature = np.empty((0, Parameters.dim_timbre))
-        try:    
+        
+        contour_URI = os.path.join(path_, track + '_' + str(i)) 
+        timbre_feature = np.empty((0, Parameters.dim_vv))
+        try:
+           
+            
             with open(contour_URI + '.arff') as csvfile:
                 spamreader = csv.reader(csvfile)
                 for row in spamreader:
@@ -143,13 +153,14 @@ def load_timbre_features(contour_data_frame, options):
                     timbre_feature = np.append(timbre_feature, curr_feature, axis=0)
                     
         except: # if file not generated for some reason, use zeros as workaround 
-            timbre_feature = np.zeros((0, Parameters.dim_timbre))
+            timbre_feature = np.zeros((0, Parameters.dim_vv))
         
-        median_timbre_features = numpy.median(timbre_feature, axis = 0)
-        contourTimbre[i,:] = median_timbre_features
+        
+        contour_vvs.append(timbre_feature)
+        
     
 
-    return contourTimbre
+    return contour_vvs
     
     
 
@@ -194,11 +205,14 @@ def compute_harmonic_magnitudes(contour_f0s,  fftgram, idx_start, options):
 
 def get_ts_contour(contour_f0s, contour_start_time, times, options):
     '''
+    compute timestamps of contour
+    
     Params:
-    fftgram - fftgram of whole audio file
+    contour_start_time start timestamp
+    contour_f0s - frames with f0
     times - ts of whole audio
     
-       return:
+    Return:
     ts of contour
     '''
     
@@ -242,13 +256,14 @@ def harmonic_magnitudes_to_audio (hfreqs, magns, phases,  options):
     run_overl = OverlapAdd (frameSize = options.windowsizeInSamples, hopSize = 512, gain = 1./options.windowsizeInSamples );
     out_audio_contour = np.array(0)
     
-    for hfreq, magn, phase in zip(hfreqs, magns, phases):
+    for hfreq, hmag, hphase in zip(hfreqs, magns, phases):
         
-        spectrum, audio_frame = harmonics_to_audio(hfreq, magn, phase, run_sine_model_synth, run_ifft, run_overl )
+        spectrum, audio_frame = harmonics_to_audio(hfreq, hmag, hphase, run_sine_model_synth, run_ifft, run_overl )
         out_audio_contour = np.append(out_audio_contour, audio_frame)
         
         pool.add('spectrum', spectrum)
-
+    
+    out_audio_contour = SM.sineModelSynth(hfreqs, magns, phases, 512, 128, 44100)
        
     return  out_audio_contour, pool['spectrum']
 
