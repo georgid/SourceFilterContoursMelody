@@ -34,7 +34,7 @@ src.contour_classification.run_contour_training_melody_extraction.eval
 
 -------------
 plot interactively contours:  
-see test_feature_weights:
+
 plot_contours_interactive(contour_data, dset_annot_dict[track], track)
 
 and plot the decoded melody 

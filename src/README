@@ -1,6 +1,6 @@
 
 
-PATH_CONTOURS=Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-0.9_pFTh-0.9_tC-100_mD-200_vxTol-0.2_LEH/
+PATH_CONTOURS=~/Documents/iKala/Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-0.9_pFTh-0.9_tC-100_mD-200_vxTol-0.2_LEH/
 
 1) #extract contours: 
 python ~/workspace/SourceFilterContoursMelody/src/main_contour_extraction.py ~/Documents/iKala/ 1  $PATH_CONTOURS

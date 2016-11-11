@@ -183,9 +183,12 @@ def label_contours_and_store(output_contours_path, tracks, normalize):
             eu.label_all_contours(dset_contour_dict, dset_contour_dict, \
                                   dset_contour_dict, olap_thresh=Parameters.OLAP_THRESH)
     
+    mix = ''
+    if Parameters.medleyDb:
+        mix = 'MIX'
     for track in dset_contour_dict_labeled.keys():
         contour_data =  dset_contour_dict_labeled[track]
-        picklefile = os.path.join(output_contours_path, track + Parameters.CONTOUR_EXTENSION)
+        picklefile = os.path.join(output_contours_path, track + mix + Parameters.CONTOUR_EXTENSION)
         from pickle import dump
         with open(picklefile, 'wb') as handle:
             dump(contour_data, handle)

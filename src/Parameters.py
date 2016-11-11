@@ -7,14 +7,14 @@ import json
 import os
 
 subset = 'v'
- 
+
 
 class   Parameters(object):
     
     with_MATPLOTLIB = True
     datasetIKala  = False
-    medleyDb = False
-    for_makam = True
+    medleyDb = True
+    for_makam = False
         
     iKala_URI = '/home/georgid/Documents/iKala/'
     medleyDbURI =  '/home/georgid/Documents/medleyDB/'
@@ -83,18 +83,22 @@ class   Parameters(object):
 
         if subset == 'all':
             with open(dir_tracks, 'r') as fhandle:
-                track_list = json.load(fhandle)
+                track_dict = json.load(fhandle)
+                tracks = track_dict['tracks'] 
         else:
             with open(dir_splits, 'r') as fhandle:
                 vi_dict = json.load(fhandle)
             if subset == 'i':
-                track_list = [k for k in vi_dict.keys() if vi_dict[k] == "i"]
+                tracks = [k for k in vi_dict.keys() if vi_dict[k] == "i"]
             if subset == 'v':
-                track_list = [k for k in vi_dict.keys() if vi_dict[k] == "v"]
-                with open(dir_tracks, 'r') as fhandle:
-                    track_list = json.load(fhandle)
-            
-        tracks = track_list['tracks']   
+                tracks = [k for k in vi_dict.keys() if vi_dict[k] == "v"]
+        
+        print len(tracks)
+        tracks_in_dir = os.listdir('/home/georgid/Documents/medleyDB/audio/mono_22050/')
+##        remove all which are not in list of vocal
+#         for track in tracks_in_dir:
+#             if track[:-8] not in tracks:
+#                 os.remove('/home/georgid/Documents/medleyDB/audio/mono_22050/' + track )
     
     test_track = '10161_chorus'
     

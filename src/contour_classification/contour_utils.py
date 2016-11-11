@@ -43,7 +43,7 @@ def load_contour_data(fpath, normalize=True):
         Pandas data frame with all contour data.
     """
     if not os.path.isfile(fpath):
-       print 'file {} does not exist'.format(fpath)
+       sys.exit('file {} does not exist'.format(fpath) )
     try:
         contour_data = pd.read_csv(fpath, header=None, index_col=None,
                                    delimiter=',').astype(float)

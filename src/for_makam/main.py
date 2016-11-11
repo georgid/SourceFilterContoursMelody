@@ -10,17 +10,18 @@ import numpy
 from get_vocal_recordings import intersect_vocal_sarki_symbTr,\
     get_recIDs_OK
 
-if __name__ == '__main__':
+if __name__ == '__main__': # intersect 
     
-    musicbrainzid = 'ba1dc923-9b0e-4b6b-a306-346bd5438d35'
+#     musicbrainzid = 'ba1dc923-9b0e-4b6b-a306-346bd5438d35'
     audioDir = sys.argv[1]
     pitch_dir = sys.argv[2]
     
     sarki_vocal_rec_ids = intersect_vocal_sarki_symbTr()
+
     recs_OK = get_recIDs_OK(sarki_vocal_rec_ids)
     
     for rec_ID in recs_OK:
-        audio_URI = download_wav(musicbrainzid, audioDir)
+        audio_URI = download_wav(rec_ID, audioDir)
         print type(rec_ID)
         intersected_pitch_series = compute_vocal_pitch(rec_ID)
         if intersected_pitch_series == None:

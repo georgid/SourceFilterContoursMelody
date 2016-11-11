@@ -110,8 +110,10 @@ def saveContours(options, stepNotes, contours_bins_SAL, contours_saliences_SAL, 
                     
                   
                     contour_data = extend_contour_features(old_contour_data, extra_features) 
-                    
-                picklefile = options.pitch_output_file + Parameters.CONTOUR_EXTENSION
+                mix = ''
+                if Parameters.medleyDb:
+                    mix = 'MIX'    
+                picklefile = options.pitch_output_file + mix + Parameters.CONTOUR_EXTENSION
                 from pickle import dump
                 with open(picklefile, 'wb') as handle:
                     dump(contour_data, handle)

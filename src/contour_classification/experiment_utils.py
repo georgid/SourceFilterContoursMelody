@@ -94,50 +94,14 @@ def get_data_files(test_track, normalize=False, meltype=1):
         annot_fname = "%s.%s" % (test_track, annot_suffix)
         annot_fpath = os.path.join(annot_path, annot_fname)
     
-    else:
+    elif Parameters.medleyDb:
+
     
-        contour_suffix = \
-            "MIX_vamp_melodia-contours_melodia-contours_contoursall.csv"
-        contours_output_path = "melodia_contours"
-    
-    
-    
-        
-        # For ORCHSET with MELODIA --------------------------
-     
-        annot_path = os.path.join('/Users/jjb/Google Drive/data/segments/excerpts/GT')
-     
-        contour_suffix = \
-            "_vamp_melodia-contours_melodia-contours_contoursall.csv"
-        contours_output_path = "/Users/jjb/Google Drive/PhD/conferences/ISMIR2016/SIMM-PC/Orchset/contours_melodia"
-        annot_suffix = "mel"
-        contour_fname = "%s%s" % (test_track, contour_suffix)
-        contour_fpath = os.path.join(contours_output_path, contour_fname)
-        annot_fname = "%s.%s" % (test_track, annot_suffix)
-        annot_fpath = os.path.join(annot_path, annot_fname)
-     
-     
-        # Fot ORCHSET with SIMM --------------------------
-     
-        contour_suffix = "pitch.ctr"
-        contours_output_path = "/Users/jjb/Google Drive/PhD/conferences/ISMIR2016/SIMM-PC/Orchset/C4-Contours/Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-0.9_pFTh-0.9_tC-50_mD-100"
-     
-        contours_output_path = "/Users/jjb/Google Drive/PhD/Tests/Orchset/ScContours/"
-     
-        annot_suffix = "mel"
-     
-        annot_path = os.path.join('/Users/jjb/Google Drive/data/segments/excerpts/GT')
-        contour_fname = "%s.%s" % (test_track, contour_suffix)
-        contour_fpath = os.path.join(contours_output_path, contour_fname)
-        annot_fname = "%s.%s" % (test_track, annot_suffix)
-        annot_fpath = os.path.join(annot_path, annot_fname)
-     
      
      
         # For MEDLEY with SIMM -------------------------
         contour_suffix = "pitch.ctr"
-        contours_output_path = "/Users/jjb/Google Drive/PhD/conferences/ISMIR2016/SIMM-PC/MedleyDB/C4-Contours/Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-0.9_pFTh-0.9_tC-50_mD-100"
-        contours_output_path = Parameters.contour_path
+        contours_output_path = Parameters.contour_URI
         annot_suffix = "MELODY%s.csv" % str(meltype)
         mel_dir = "MELODY%s" % str(meltype)
         annot_path = os.path.join(os.environ['MEDLEYDB_PATH'], 'Annotations',
@@ -146,27 +110,12 @@ def get_data_files(test_track, normalize=False, meltype=1):
         annot_path = os.path.join(Parameters.medleyDbURI, 'Annotations',
                                   'Melody_Annotations', mel_dir)
         
-        contour_fname = "%s_%s" % (test_track, contour_suffix)
+        contour_fname = "%s_MIX.%s" % (test_track, contour_suffix)
         contour_fpath = os.path.join(contours_output_path, contour_fname)
         annot_fname = "%s_%s" % (test_track, annot_suffix)
         annot_fpath = os.path.join(annot_path, annot_fname)
      
-        # Fot ORCHSET with SIMM --------------------------
-     
-#         contour_suffix = "pitch.ctr"
-#         contours_output_path = "/Users/jjb/Google Drive/PhD/conferences/ISMIR2016/SIMM-PC/Orchset/C4-Contours/Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-0.9_pFTh-0.9_tC-50_mD-100"
-#      
-#         #contours_output_path = "/Users/jjb/Google Drive/PhD/Tests/Orchset/ScContours/"
-#      
-#         annot_suffix = "mel"
-#      
-#         annot_path = os.path.join('/Users/jjb/Google Drive/data/segments/excerpts/GT')
-#         contour_fname = "%s.%s" % (test_track, contour_suffix)
-#         contour_fpath = os.path.join(contours_output_path, contour_fname)
-#         annot_fname = "%s.%s" % (test_track, annot_suffix)
-#         annot_fpath = os.path.join(annot_path, annot_fname)
-#     
-        #################################################
+
     
 
     

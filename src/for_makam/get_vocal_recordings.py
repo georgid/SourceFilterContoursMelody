@@ -8,7 +8,7 @@ list_long_SAZ = {'cab08727-d5c2-4fda-9d96-d107915a85ec'}
 list_erroneous_vocal = {'764c2b10-90b8-44b8-8254-2992302f8a2b'}
 list_other_problems = {'67e7422b-24d8-420a-961f-652e6cf66ca9'}
 list_not_correct_lyric_linking = {'6fdc4617-e491-44b2-998c-3bc00bc2085', 
-                                  '6fdc4617-e491-44b2-998c-3bc00bc2085',
+                                  
                                   }
 
 
@@ -97,4 +97,10 @@ def get_recIDs_OK(sarki_vocal_rec_ids):
                 recs_OK.append(rec_ID)
                 count+= 1
     return recs_OK
-    
+
+
+if __name__ == '__main__':
+        sarki_vocal_rec_ids = intersect_vocal_sarki_symbTr()
+        for idx, sarki_rec_id in enumerate(sarki_vocal_rec_ids):
+            print idx
+            print 'http://dunya.compmusic.upf.edu/makam/recording/' + str(sarki_rec_id)
