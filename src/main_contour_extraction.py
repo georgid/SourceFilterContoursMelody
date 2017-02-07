@@ -31,6 +31,11 @@ from timbreFeatures import load_timbre_features
 
 
 def create_contours_and_store(tracks, contours_output_path):
+    '''
+    extract contours with essentia with SAL features
+    
+    output .pitch.ctr in folder contours_output_path
+    '''
     import parsing
     
     (args,options) = parsing.parseOptions(sys.argv)
@@ -69,11 +74,10 @@ def create_contours_and_store(tracks, contours_output_path):
 def add_timbre_features_and_save(track, contours_output_path, options):
     
     '''
-    toAudio - if True store resynthesized audio for each contour and return without contour extraction
-    else: extract Timbre and save
+    load extracted ctrs,  
+    add timbre features and save contours in 
+    same format .pitch.ctr
     '''
-    
-   
         
     contour_data_frame, contours_bins_SAL, contours_saliences_SAL, contours_start_times_SAL = load_contour(track, options)
 
@@ -148,7 +152,7 @@ def load_contour(track, options):
 
 def contours_to_audio(track, contours_output_path, options):
     '''
-    convert contour to spectrum
+    sonify only the harmonic partials from the contour
     take spectral part with f0 at contour 
     '''
         
@@ -168,9 +172,15 @@ def label_contours_and_store(output_contours_path, tracks, normalize):
     overlap all contours with ground truth and serialize to pandas pickle
     added as a separate function to be able to run statistics of labels 
     before contour training
+    
+    Parameters
+    -------------------
+    normalize: 
+        normalize the SAL features when loading contours
+    
     '''
-    mel_type = 1
-    #  for iKala
+    mel_type = 1 # this work is restriced to only melody type = 1
+    
 
     # mdb_files, splitter = eu.create_splits(test_size=0.15)
     import contour_classification.experiment_utils as eu
@@ -201,16 +211,15 @@ def label_contours_and_store(output_contours_path, tracks, normalize):
 
 if __name__ == '__main__':
     
-    if len(sys.argv) != 5:
-        sys.exit('usage: {} <path-to-ikala>  <path-contours> <create_contours=1, extracttimbre=2, contour_to_audio=3> <with_MatplotLib> '.format(sys.argv[0]))
+    if len(sys.argv) != 4:
+        sys.exit('usage: {} <path-to-root-dir-of-dataset>  <path-contours> <create_contours=1, extracttimbre=2, contour_to_audio=3> '.format(sys.argv[0]))
     path_ = sys.argv[1]
     Parameters.iKala_URI = path_
     Parameters.set_paths()  
     whichStep_ = int(sys.argv[3]) #
-    Parameters.with_MATPLOTLIB =  int(sys.argv[4])
+    Parameters.with_MATPLOTLIB = True # set to False if running on hpc, becasue it might create problems
     
     Parameters.contour_URI = sys.argv[2]
-    print Parameters.contour_URI
     args, options = parsing.parseOptions(sys.argv)
     
 #     tracks = ['61647_verse']
@@ -240,6 +249,7 @@ if __name__ == '__main__':
                     ax.grid(False)
                     plt.show()
     
+    # in all cases label contours according annotations
     dset_contour_dict_labeled, dset_annot_dict = label_contours_and_store(Parameters.contour_URI, tracks, normalize=False)
 
     

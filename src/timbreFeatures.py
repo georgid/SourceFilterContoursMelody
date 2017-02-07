@@ -88,7 +88,10 @@ def compute_timbre_features(contours_bins_SAL, contours_start_times_SAL, fftgram
     '''
     compute timbre features for all contours
     
-    return: numpy array of timbral features 
+    Returns
+    -----------------
+    numpy array 
+        timbral features 
     '''
     NContours = len(contours_bins_SAL)
     
@@ -124,6 +127,7 @@ def compute_timbre_features(contours_bins_SAL, contours_start_times_SAL, fftgram
 #         plt.imshow(contourTimbre)
 
     return contourTimbre
+
 
 def load_timbre_features(contour_data_frame, path_, track):
     '''
@@ -170,6 +174,7 @@ def compute_harmonic_magnitudes(contour_f0s,  fftgram, idx_start, options):
     get harmonic partials form original spectrum
     
     Params:
+    --------------------
     fftgram - fftgram of whole audio file
     times - ts of whole audio
     

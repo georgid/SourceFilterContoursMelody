@@ -37,6 +37,16 @@ from contour_utils  import getFeatureInfo
 
 def train_and_classify(mdb_files, train, test, dset_contour_dict, dset_annot_dict):
             '''
+            
+            - cross validate best depth of Randon Forest Classifier: cu.cross_val_sweep
+
+            - classify all contours and get scikitlearn metrics: cu.clf_predictions
+
+            - get threshold with best f-measure on validation dataset get_best_threshold(Y_valid, P_valid) on validation
+
+            - classify test contours : contour_probs
+
+            - melody decoding: gm.melody_from_cl
             labeling should be already done
             '''
             random.shuffle(train)

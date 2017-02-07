@@ -95,7 +95,7 @@ def load_contour_data(fpath, normalize=True):
 
 
 def normalize_features(contour_data):
-    """ Normalizes (trackwise) features in contour_data.
+    """ Normalizes  contour_features (trackwise).
     Adds labels column with all labels unset.
 
     Parameters

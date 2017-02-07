@@ -12,8 +12,8 @@ subset = 'v'
 class   Parameters(object):
     
     with_MATPLOTLIB = True
-    datasetIKala  = False
-    medleyDb = True
+    datasetIKala  = True
+    medleyDb = False
     for_makam = False
         
     iKala_URI = '/home/georgid/Documents/iKala/'
@@ -34,7 +34,7 @@ class   Parameters(object):
     use_SAL_for_classification = True
     use_fluct_for_classification = True
 
-    read_features_from_MATLAB = True # load .arff files per contour extracted with Lehner's code matlab
+    read_features_from_MATLAB = False # load .arff files per contour extracted with Lehner's code matlab
     
 
     

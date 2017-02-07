@@ -1,8 +1,0 @@
-
-# get recordings IDs list
-python ~/workspace/SourceFilterContoursMelody/src/for_makam/intersect_vocal_and_pitch.py
-
-# generate vocal nono-vocal : intersect for all rec IDs
-python ~/workspace/SourceFilterContoursMelody/src/for_makam/main.py ~/Documents/makam_vocal/Wavfile ~/Documents/makam_vocal/PitchLabe
-
-python ~/workspace/SourceFilterContoursMelody/src/main_contour_extraction.py ~/Documents/makam_vocal/ ~/Documents/makam_vocal/contours/  1 0
