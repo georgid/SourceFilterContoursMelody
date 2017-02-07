@@ -1,43 +1,78 @@
-# SourceFilterContoursMelody
-Melody extraction based on source-filter modelling
+A method to classify predominant pitch contours into vocal and instrumental (non-vocal) ones. 
+
+It extends the method of 
+
+Rachel M Bittner, Justin Salamon, Slim Essid, and Juan P Bello, ÒMelody extraction by contour classifi- cation,Ó in Proc. ISMIR, pp. 500Ð506
+
+by adding contour fluctuation features. 
+Each pitch contour is characterized by the baseline salience features + timbre- and pitch-fluctuation features
 
 
-This repository contains the code of the algorithm evaluated in MIREX 2015 and 2016 (BG).
-It also contains the code necessary to run the experiments in the following article (ISMIR2016):
+Usage:
+------------------------
 
-J. J. Bosch, R. M. Bittner, J. Salamon, and E. GÃ³mez, "A Comparison of
-Melody Extraction Methods Based on Source-Filter Modelling", in Proc.
-17th International Society for Music Information Retrieval Conference
-(ISMIR 2016), New York City, USA, Aug. 2016.
+first set only one of Parameters.medleyDb, Parameters.datasetIKala or Parameters.for_makam to True
 
-Author:
-Juan J. Bosch
-Music Technology Group, Universitat Pompeu Fabra, Barcelona
-Contact: juan.bosch@upf.edu
+1) #extract contours with essentia: 
+`python ~/workspace/SourceFilterContoursMelody/src/main_contour_extraction.py ~/Documents/iKala/  $PATH_CONTOURS 1`
 
-This repository also contains code by R.M. Bittner (contour_classification folder), and J.L Durrieu, which has been adapted to the needs of the conducted experiments
+NOTE: the extension pitch.ctr is same for contours with or without added timbre features
+NOTE: Parameters.contour_URI
 
-The code is written in python (version 2.7), and presents the following dependencies:
+or copy them
+`cp /home/georgid/Documents/iKala/Conv_mu-1_G-0_LHSF-0_pC-27.56_pDTh-0.9_pFTh-0.9_tC-100_mD-200_vxTol-0.2/*.pitch.ctr  $PATH_CONTOURS`
 
-Essentia 2.0.1 or newer, with python bindings (http://essentia.upf.edu/)
-NumPy 1.8.2 (any relatively recent version should work)
 
-For contour classification, the following packages are also used:
+2) load pre-extracted contours and add fluctuation features 
 
-pandas
-scipy
-seaborn
-sklearn
-mir_eval 
+`python ~/workspace/SourceFilterContoursMelody/src/main_contour_extraction.py ~/Documents/iKala/  $PATH_CONTOURS 2`
 
-In order to execute the algorithm evaluated in MIREX 2016 (BG1 and BG2 submissions), it should be called from the folder which contains the source code, as:
 
-python MelodyExtractionFromSingleWav.py /inputaudiofolder/audio1.wav /estimations/audio1.txt --extractionMethod='BG1' --hopsize=0.01 --nb-iterations=30
 
-where %input is the path to a wav file, and output is the file with the estimated melody.
+3) classify
+### classify SALomon's features:
+`python ~/workspace/SourceFilterContoursMelody/src/contour_classification/run_contour_training_melody_extraction.py $PATH_CONTOURS 1 0 0`
 
-To run contour classification experiments, you should first compute and save the contours, and adapt the paths, as well as the hopsize:
+### classify SALomon's features + fluctogram:
+`python ~/workspace/SourceFilterContoursMelody/src/contour_classification/run_contour_training_melody_extraction.py $PATH_CONTOURS 1 1 0`
 
-python run_contour_training_melody_extraction.py
+### classify SALomon's features + VV:
+`python ~/workspace/SourceFilterContoursMelody/src/contour_classification/run_contour_training_melody_extraction.py $PATH_CONTOURS 1 0 1`
+if experimenting with diff feature parameters:  set Parameters.use_<featureName>_for_classification  << used in src.contour_classification.contour_utils.getFeatureInfo() >>
 
-python run_glass_ceiling_experiment.py
+
+4) evaluate 
+`src.contour_classification.run_contour_training_melody_extraction.eval`
+
+
+
+
+Useful tools: 
+-------------
+
+see test directory
+### plot interactively contours:  
+
+plot_contours_interactive(contour_data, dset_annot_dict[track], track)
+
+### and plot the decoded melody 
+plot_decoded_melody
+
+
+### extract features with already extracted contour:
+test_timbre_features
+
+compute_and_plot_harmoncis
+
+### sonify the harmonics of extracted contours
+
+python ~/workspace/SourceFilterContoursMelody/src/main_contour_extraction.py ~/Documents/iKala/ $PATH_CONTOURS 3  
+
+
+### to use vocal variance feature extraction code in MATLAB:
+	set Parameters.features_MATLAB = True
+	
+	
+	# extract feat. matlab.. Bernhard Lehner
+	in matlab in /home/georgid/Documents/svd
+	then extractSVD2015features
